@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Monthly Expenses Entry</title>
+</head>
+<body>
+    <h1>Monthly Financial Entry</h1>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Save Entry</button>
+    </form>
+
+    <h2>Past Entries</h2>
+    <table border="1">
+        <tr>
+            <th>Date</th>
+            <th>Account Name</th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Notes</th>
+        </tr>
+        {% for entry in entries %}
+        <tr>
+            <td>{{ entry.date }}</td>
+            <td>{{ entry.account_name }}</td>
+            <td>{{ entry.account_type }}</td>
+            <td>{{ entry.amount }}</td>
+            <td>{{ entry.notes }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
