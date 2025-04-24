@@ -4,6 +4,7 @@ class MonthlyEntry(models.Model):
     ACCOUNT_TYPE_CHOICES = [
         ('Current', 'Current'),
         ('Savings', 'Savings'),
+        ('Lending', 'Lending'),
     ]
     
     date = models.DateField()

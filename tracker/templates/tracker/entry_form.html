@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monthly Bank Tracker</title>
+    <title>Meg's Monthly Bank Tracker</title>
     <!-- Add Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Add Chart.js via CDN -->
@@ -13,24 +14,30 @@
             cursor: pointer;
             transition: background-color 0.2s;
         }
+
         .editable-amount:hover {
             background-color: rgba(37, 99, 235, 0.1);
             border-radius: 0.25rem;
         }
+
         .amount-input {
             width: 8rem;
             text-align: right;
         }
+
         .month-section {
             transition: max-height 0.3s ease-out;
             overflow: hidden;
         }
+
         .month-section.collapsed {
             max-height: 3.5rem;
         }
+
         .month-section.expanded {
             max-height: 1000px;
         }
+
         .scroll-container {
             overflow-x: auto;
             white-space: nowrap;
@@ -38,41 +45,48 @@
             -ms-overflow-style: none;
             padding-bottom: 8px;
         }
+
         .scroll-container::-webkit-scrollbar {
             height: 8px;
         }
+
         .scroll-container::-webkit-scrollbar-track {
             background: #f1f1f1;
             border-radius: 4px;
         }
+
         .scroll-container::-webkit-scrollbar-thumb {
             background: #888;
             border-radius: 4px;
         }
+
         .scroll-container::-webkit-scrollbar-thumb:hover {
             background: #555;
         }
+
         .month-card {
             display: inline-block;
             white-space: normal;
             vertical-align: top;
         }
+
         .month-card.current {
             border: 2px solid #3b82f6;
         }
     </style>
 </head>
+
 <body class="bg-gray-50">
     {% load account_filters %}
     <div class="container mx-auto px-4 py-6">
         <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Monthly Bank Account Tracker</h1>
-        
+
         <!-- Summary Chart Section -->
         <div class="bg-white rounded-lg shadow-md p-5 mb-8">
             <h2 class="text-lg font-semibold mb-4">Financial Summary</h2>
             <canvas id="financialSummaryChart" height="100"></canvas>
         </div>
-        
+
         <!-- Year Selector and Month Scroller -->
         <div class="bg-white rounded-lg shadow-md p-5 mb-8">
             <div class="flex justify-between items-center mb-4">
@@ -84,24 +98,29 @@
                     </select>
                     <button id="scrollLeft" class="bg-gray-200 hover:bg-gray-300 rounded-full p-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                            <path fill-rule="evenodd"
+                                d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                                clip-rule="evenodd" />
                         </svg>
                     </button>
                     <button id="scrollRight" class="bg-gray-200 hover:bg-gray-300 rounded-full p-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                            <path fill-rule="evenodd"
+                                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                                clip-rule="evenodd" />
                         </svg>
                     </button>
                 </div>
             </div>
-            
+
             <!-- Horizontal Month Scroller -->
             <div class="scroll-container" id="monthScroller">
                 <!-- Month cards will be populated based on selected year -->
                 {% for month_name, month_data in current_year_months %}
-                <div class="month-card w-80 bg-gray-50 rounded-lg shadow-sm mr-4 p-4 {% if month_data.is_current %}current{% endif %}" data-month="{{ month_name }}">
+                <div class="month-card w-80 bg-gray-50 rounded-lg shadow-sm mr-4 p-4 {% if month_data.is_current %}current{% endif %}"
+                    data-month="{{ month_name }}">
                     <h3 class="font-semibold text-lg mb-3">{{ month_name }}</h3>
-                    
+
                     <!-- Current Accounts Summary -->
                     <div class="mb-3">
                         <div class="flex justify-between items-center text-sm font-medium text-gray-700 mb-1">
@@ -109,7 +128,7 @@
                             <span class="text-right">£{{ month_data.current|sum_amounts }}</span>
                         </div>
                     </div>
-                    
+
                     <!-- Savings Accounts Summary -->
                     <div class="mb-3">
                         <div class="flex justify-between items-center text-sm font-medium text-gray-700 mb-1">
@@ -117,21 +136,30 @@
                             <span class="text-right">£{{ month_data.savings|sum_amounts }}</span>
                         </div>
                     </div>
-                    
+
+                    <!-- Lending Accounts Summary -->
+                    <div class="mb-3">
+                        <div class="flex justify-between items-center text-sm font-medium text-gray-700 mb-1">
+                            <span>Lending Accounts:</span>
+                            <span class="text-right">£{{ month_data.lending|sum_amounts }}</span>
+                        </div>
+                    </div>
+
                     <!-- Total Assets for Month -->
                     <div class="pt-2 border-t">
                         <div class="flex justify-between items-center font-semibold">
                             <span>Total Assets:</span>
-                            {% with current_total=month_data.current|sum_amounts savings_total=month_data.savings|sum_amounts %}
-                            <span class="text-right">£{{ current_total|add:savings_total }}</span>
+                            {% with current_total=month_data.current|sum_amounts savings_total=month_data.savings|sum_amounts lending_total=month_data.lending|sum_amounts %}
+                                <span class="text-right">£{{ current_total|add:savings_total|add:lending_total }}</span>
                             {% endwith %}
                         </div>
                     </div>
-                    
+
                     <!-- Edit Button -->
                     <div class="mt-3 text-center">
-                        <button class="edit-month-btn bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-1 px-3 rounded"
-                                data-month-full="{{ month_name }}">
+                        <button
+                            class="edit-month-btn bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-1 px-3 rounded"
+                            data-month-full="{{ month_name }}">
                             Edit Accounts
                         </button>
                     </div>
@@ -139,7 +167,7 @@
                 {% endfor %}
             </div>
         </div>
-        
+
         <!-- Add Account Form (Collapsed by default) -->
         <div class="bg-white rounded-lg shadow-md p-5 mb-8">
             <div class="flex justify-between items-center">
@@ -148,7 +176,7 @@
                     Show Form
                 </button>
             </div>
-            
+
             <div id="addAccountForm" class="hidden mt-4">
                 <form method="POST" action="{% url 'add_account' %}" class="space-y-4">
                     {% csrf_token %}
@@ -166,32 +194,36 @@
                             <select name="account_type" class="border p-2 rounded w-full" required>
                                 <option value="Current">Current</option>
                                 <option value="Savings">Savings</option>
+                                <option value="Lending">Lending</option>
                             </select>
                         </div>
                     </div>
                     <div class="flex justify-end">
-                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button type="submit"
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
                             Add Account
                         </button>
                     </div>
                 </form>
             </div>
         </div>
-        
+
         <!-- Selected Month Detail View (initially hidden) -->
         <div id="monthDetailView" class="bg-white rounded-lg shadow-md overflow-hidden mb-8 hidden">
             <div class="bg-gray-50 border-b p-4 flex justify-between items-center">
                 <h2 class="text-lg font-semibold" id="detailViewTitle">Month Detail</h2>
                 <button id="closeDetailView" class="text-gray-500 hover:text-gray-700">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        <path fill-rule="evenodd"
+                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                            clip-rule="evenodd" />
                     </svg>
                 </button>
             </div>
-            
+
             <div id="monthDetailContent"></div>
         </div>
-        
+
         <!-- All Monthly Entries (Hidden by default) -->
         <div id="allMonthsContainer" class="hidden">
             {% for month_name, month_data in entries_by_month %}
@@ -210,18 +242,17 @@
                                     <p class="text-xs text-gray-500">{{ entry.notes }}</p>
                                     {% endif %}
                                 </div>
-                                <span class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}" 
-                                      data-id="{{ entry.id }}" 
-                                      data-amount="{{ entry.amount }}"
-                                      data-type="current"
-                                      data-month="{{ month_name }}">
+                                <span
+                                    class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
+                                    data-id="{{ entry.id }}" data-amount="{{ entry.amount }}" data-type="current"
+                                    data-month="{{ month_name }}">
                                     £{{ entry.amount }}
                                 </span>
                             </div>
                             {% empty %}
                             <p class="text-gray-500 italic">No current accounts</p>
                             {% endfor %}
-                            
+
                             <!-- Current Total -->
                             {% if month_data.current %}
                             <div class="p-3 bg-blue-50 rounded mt-2 flex justify-between items-center">
@@ -233,7 +264,7 @@
                             {% endif %}
                         </div>
                     </div>
-                    
+
                     <!-- Savings Accounts -->
                     <div>
                         <h3 class="font-medium text-gray-700 mb-2 border-b pb-1">Savings Accounts</h3>
@@ -246,18 +277,17 @@
                                     <p class="text-xs text-gray-500">{{ entry.notes }}</p>
                                     {% endif %}
                                 </div>
-                                <span class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}" 
-                                      data-id="{{ entry.id }}" 
-                                      data-amount="{{ entry.amount }}"
-                                      data-type="savings"
-                                      data-month="{{ month_name }}">
+                                <span
+                                    class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
+                                    data-id="{{ entry.id }}" data-amount="{{ entry.amount }}" data-type="savings"
+                                    data-month="{{ month_name }}">
                                     £{{ entry.amount }}
                                 </span>
                             </div>
                             {% empty %}
                             <p class="text-gray-500 italic">No savings accounts</p>
                             {% endfor %}
-                            
+
                             <!-- Savings Total -->
                             {% if month_data.savings %}
                             <div class="p-3 bg-green-50 rounded mt-2 flex justify-between items-center">
@@ -269,14 +299,48 @@
                             {% endif %}
                         </div>
                     </div>
+                    <!-- Lending Details -->
+                    <div>
+                        <h3 class="font-medium text-gray-700 mb-2 border-b pb-1">Lending Details</h3>
+                        <div class="space-y-2">
+                            {% for entry in month_data.lending %}
+                            <div class="p-3 bg-gray-50 rounded flex justify-between items-center">
+                                <div>
+                                    <p class="font-medium">{{ entry.bank_name }} - {{ entry.account_name }}</p>
+                                    {% if entry.notes %}
+                                    <p class="text-xs text-gray-500">{{ entry.notes }}</p>
+                                    {% endif %}
+                                </div>
+                                <span
+                                    class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
+                                    data-id="{{ entry.id }}" data-amount="{{ entry.amount }}" data-type="savings"
+                                    data-month="{{ month_name }}">
+                                    £{{ entry.amount }}
+                                </span>
+                            </div>
+                            {% empty %}
+                            <p class="text-gray-500 italic">No Lending</p>
+                            {% endfor %}
+
+                            <!-- Lending Total -->
+                            {% if month_data.lending %}
+                            <div class="p-3 bg-green-50 rounded mt-2 flex justify-between items-center">
+                                <p class="font-medium">Lending Total</p>
+                                <span class="font-bold lending-total" data-month="{{ month_name }}">
+                                    £{{ month_data.lending|sum_amounts }}
+                                </span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
-                
+
                 <!-- Grand Total -->
                 <div class="p-4 bg-gray-100 border-t">
                     <div class="flex justify-between items-center font-semibold">
                         <p>Total Assets</p>
-                        {% with current_total=month_data.current|sum_amounts savings_total=month_data.savings|sum_amounts %}
-                        <span class="grand-total" data-month="{{ month_name }}">£{{ current_total|add:savings_total }}</span>
+                        {% with current_total=month_data.current|sum_amounts savings_total=month_data.savings|sum_amounts lending_total=month_data.lending|sum_amounts %}
+                            <span class="grand-total" data-month="{{ month_name }}">£{{ current_total|add:savings_total|add:lending_total }}</span>
                         {% endwith %}
                     </div>
                 </div>
@@ -287,28 +351,31 @@
 
     <!-- JavaScript for inline editing and chart -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // ----- Chart Data -----
             const chartData = {
                 months: [],
                 currentTotals: [],
                 savingsTotals: [],
+                lendingTotals: [],
                 grandTotals: []
             };
-            
+
             // Collect data for chart
-            document.querySelectorAll('.month-data-container').forEach(function(monthSection) {
+            document.querySelectorAll('.month-data-container').forEach(function (monthSection) {
                 const monthName = monthSection.getAttribute('data-month');
                 const currentTotal = parseFloat(monthSection.querySelector('.current-total')?.textContent.replace('£', '') || 0);
                 const savingsTotal = parseFloat(monthSection.querySelector('.savings-total')?.textContent.replace('£', '') || 0);
+                const lendingTotal = parseFloat(monthSection.querySelector('.lending-total')?.textContent.replace('£', '') || 0);
                 const grandTotal = parseFloat(monthSection.querySelector('.grand-total')?.textContent.replace('£', '') || 0);
-                
-                chartData.months.unshift(monthName); // Add to beginning to maintain chronological order
+
+                chartData.months.unshift(monthName);
                 chartData.currentTotals.unshift(currentTotal);
                 chartData.savingsTotals.unshift(savingsTotal);
+                chartData.lendingTotals.unshift(lendingTotal);
                 chartData.grandTotals.unshift(grandTotal);
             });
-            
+
             // Initialize Chart
             const ctx = document.getElementById('financialSummaryChart').getContext('2d');
             const financialChart = new Chart(ctx, {
@@ -342,6 +409,15 @@
                             borderWidth: 1,
                             fill: false,
                             tension: 0.1
+                        },
+                        {
+                            label: 'Lending Accounts',
+                            data: chartData.lendingTotals,
+                            backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                            borderColor: 'rgba(255, 159, 64, 1)',
+                            borderWidth: 1,
+                            fill: false,
+                            tension: 0.1
                         }
                     ]
                 },
@@ -359,7 +435,7 @@
                     plugins: {
                         tooltip: {
                             callbacks: {
-                                label: function(context) {
+                                label: function (context) {
                                     return context.dataset.label + ': £' + context.raw.toFixed(2);
                                 }
                             }
@@ -367,20 +443,20 @@
                     }
                 }
             });
-            
+
             // ----- Toggle Add Account form -----
-            document.getElementById('toggleAddForm').addEventListener('click', function() {
+            document.getElementById('toggleAddForm').addEventListener('click', function () {
                 const form = document.getElementById('addAccountForm');
                 const isHidden = form.classList.contains('hidden');
                 form.classList.toggle('hidden');
                 this.textContent = isHidden ? 'Hide Form' : 'Show Form';
             });
-            
+
             // ----- Setup Year Selector -----
             const yearSelector = document.getElementById('yearSelector');
             const currentYear = new Date().getFullYear();
-            
-            // Populate years (current year and 2 years back)
+
+            // Populate years (current year only)
             for (let year = currentYear; year >= currentYear - 2; year--) {
                 const option = document.createElement('option');
                 option.value = year;
@@ -388,92 +464,92 @@
                 if (year === currentYear) option.selected = true;
                 yearSelector.appendChild(option);
             }
-            
+
             // Handle year selection change
-            yearSelector.addEventListener('change', function() {
+            yearSelector.addEventListener('change', function () {
                 // This would typically fetch data for the selected year
                 // For this version, we're just using the data we have
                 alert('Would fetch data for year: ' + this.value);
             });
-            
+
             // ----- Horizontal Scroll Buttons -----
             const scrollContainer = document.getElementById('monthScroller');
             const scrollLeftBtn = document.getElementById('scrollLeft');
             const scrollRightBtn = document.getElementById('scrollRight');
-            
-            scrollLeftBtn.addEventListener('click', function() {
+
+            scrollLeftBtn.addEventListener('click', function () {
                 scrollContainer.scrollBy({ left: -300, behavior: 'smooth' });
             });
-            
-            scrollRightBtn.addEventListener('click', function() {
+
+            scrollRightBtn.addEventListener('click', function () {
                 scrollContainer.scrollBy({ left: 300, behavior: 'smooth' });
             });
-            
+
             // ----- Month Detail View -----
             const monthDetailView = document.getElementById('monthDetailView');
             const monthDetailContent = document.getElementById('monthDetailContent');
             const detailViewTitle = document.getElementById('detailViewTitle');
-            
+
             // Handle "Edit Accounts" button clicks
-            document.querySelectorAll('.edit-month-btn').forEach(function(button) {
-                button.addEventListener('click', function() {
+            document.querySelectorAll('.edit-month-btn').forEach(function (button) {
+                button.addEventListener('click', function () {
                     const monthName = this.getAttribute('data-month-full');
                     const monthContainer = document.querySelector(`.month-data-container[data-month="${monthName}"]`);
-                    
+
                     if (monthContainer) {
                         // Update title
                         detailViewTitle.textContent = monthName + ' Details';
-                        
+
                         // Clone the content
                         monthDetailContent.innerHTML = '';
                         monthDetailContent.appendChild(monthContainer.cloneNode(true));
-                        
+
                         // Show the detail view
                         monthDetailView.classList.remove('hidden');
-                        
+
                         // Setup editable amounts in the cloned content
                         setupEditableAmounts();
-                        
+
                         // Scroll to the detail view
                         monthDetailView.scrollIntoView({ behavior: 'smooth' });
                     }
                 });
             });
-            
+
             // Close detail view button
-            document.getElementById('closeDetailView').addEventListener('click', function() {
+            document.getElementById('closeDetailView').addEventListener('click', function () {
                 monthDetailView.classList.add('hidden');
             });
-            
+
             // ----- Handle editable amounts -----
             function setupEditableAmounts() {
-                document.querySelectorAll('.editable-amount').forEach(function(element) {
-                    element.addEventListener('click', function() {
+                document.querySelectorAll('.editable-amount').forEach(function (element) {
+                    element.addEventListener('click', function () {
                         const id = this.getAttribute('data-id');
                         const currentAmount = this.getAttribute('data-amount');
                         const accountType = this.getAttribute('data-type');
                         const monthName = this.getAttribute('data-month');
-                        
+
                         // Create input field
                         const input = document.createElement('input');
                         input.type = 'number';
                         input.step = '0.01';
                         input.value = currentAmount;
                         input.classList.add('border', 'p-1', 'rounded', 'amount-input');
-                        
+
                         // Replace the span with input
                         const originalContent = this.innerHTML;
                         this.innerHTML = '';
                         this.appendChild(input);
                         input.focus();
-                        
+
                         // Handle input blur (save)
-                        input.addEventListener('blur', function() {
+                        input.addEventListener('blur', function () {
                             saveAmount(id, this.value, originalContent, element, accountType, monthName);
                         });
-                        
+
                         // Handle Enter key
-                        input.addEventListener('keypress', function(e) {
+                        input.addEventListener('keypress', function (e) {
                             if (e.key === 'Enter') {
                                 this.blur();
                             }
@@ -481,10 +557,10 @@
                     });
                 });
             }
-            
+
             // Initial setup of editable amounts
             setupEditableAmounts();
-            
+
             function saveAmount(id, newAmount, originalContent, element, accountType, monthName) {
                 // Make AJAX request to update amount
                 fetch(`/update-amount/${id}/`, {
@@ -496,82 +572,89 @@
                         amount: newAmount
                     })
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Update the element with new amount
-                        const amount = parseFloat(data.amount);
-                        element.innerHTML = '£' + amount.toFixed(2);
-                        element.setAttribute('data-amount', amount);
-                        
-                        // Set color based on amount
-                        if (amount < 0) {
-                            element.classList.remove('text-green-600');
-                            element.classList.add('text-red-600');
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update the element with new amount
+                            const amount = parseFloat(data.amount);
+                            element.innerHTML = '£' + amount.toFixed(2);
+                            element.setAttribute('data-amount', amount);
+
+                            // Set color based on amount
+                            if (amount < 0) {
+                                element.classList.remove('text-green-600');
+                                element.classList.add('text-red-600');
+                            } else {
+                                element.classList.remove('text-red-600');
+                                element.classList.add('text-green-600');
+                            }
+
+                            // Update totals
+                            updateTotals(monthName, data.current_total, data.savings_total, data.lending_total, data.grand_total);
+
+                            // Update the month cards in the scroller
+                            updateMonthCard(monthName, data.current_total, data.savings_total, data.lending_total, data.grand_total);
+
+                            // Update the chart
+                            updateChart(monthName, data.current_total, data.savings_total, data.lending_total, data.grand_total);
                         } else {
-                            element.classList.remove('text-red-600');
-                            element.classList.add('text-green-600');
+                            // Revert to original content on error
+                            element.innerHTML = originalContent;
+                            console.error('Error updating amount:', data.error);
                         }
-                        
-                        // Update totals
-                        updateTotals(monthName, data.current_total, data.savings_total, data.grand_total);
-                        
-                        // Update the month cards in the scroller
-                        updateMonthCard(monthName, data.current_total, data.savings_total, data.grand_total);
-                        
-                        // Update the chart
-                        updateChart(monthName, data.current_total, data.savings_total, data.grand_total);
-                    } else {
-                        // Revert to original content on error
+                    })
+                    .catch(error => {
                         element.innerHTML = originalContent;
-                        console.error('Error updating amount:', data.error);
-                    }
-                })
-                .catch(error => {
-                    element.innerHTML = originalContent;
-                    console.error('Error:', error);
-                });
+                        console.error('Error:', error);
+                    });
             }
-            
-            function updateTotals(monthName, currentTotal, savingsTotal, grandTotal) {
+
+            function updateTotals(monthName, currentTotal, savingsTotal, lendingTotal, grandTotal) {
                 // Update all instances of the totals (both in detail view and hidden containers)
                 document.querySelectorAll(`.current-total[data-month="${monthName}"]`).forEach(el => {
                     el.textContent = '£' + currentTotal.toFixed(2);
                 });
-                
+
                 document.querySelectorAll(`.savings-total[data-month="${monthName}"]`).forEach(el => {
                     el.textContent = '£' + savingsTotal.toFixed(2);
                 });
-                
+
+                document.querySelectorAll(`.lending-total[data-month="${monthName}"]`).forEach(el => {
+                    el.textContent = '£' + lendingTotal.toFixed(2);
+                });
+
                 document.querySelectorAll(`.grand-total[data-month="${monthName}"]`).forEach(el => {
                     el.textContent = '£' + grandTotal.toFixed(2);
                 });
             }
-            
-            function updateMonthCard(monthName, currentTotal, savingsTotal, grandTotal) {
-                // Find the month card and update its summary
+
+            function updateMonthCard(monthName, currentTotal, savingsTotal, lendingTotal, grandTotal) {
                 const monthCard = document.querySelector(`.month-card[data-month="${monthName}"]`);
                 if (monthCard) {
                     const currentElement = monthCard.querySelector('div:nth-child(2) span:last-child');
                     const savingsElement = monthCard.querySelector('div:nth-child(3) span:last-child');
-                    const totalElement = monthCard.querySelector('div:nth-child(4) span:last-child');
-                    
+                    const lendingElement = monthCard.querySelector('div:nth-child(4) span:last-child');
+                    const totalElement = monthCard.querySelector('div:nth-child(5) span:last-child');
+
                     if (currentElement) currentElement.textContent = '£' + currentTotal.toFixed(2);
                     if (savingsElement) savingsElement.textContent = '£' + savingsTotal.toFixed(2);
+                    if (lendingElement) lendingElement.textContent = '£' + lendingTotal.toFixed(2);
                     if (totalElement) totalElement.textContent = '£' + grandTotal.toFixed(2);
                 }
             }
-            
-            function updateChart(monthName, currentTotal, savingsTotal, grandTotal) {
+
+            function updateChart(monthName, currentTotal, savingsTotal, lendingTotal, grandTotal) {
                 const monthIndex = chartData.months.indexOf(monthName);
                 if (monthIndex !== -1) {
                     financialChart.data.datasets[0].data[monthIndex] = grandTotal;
                     financialChart.data.datasets[1].data[monthIndex] = currentTotal;
                     financialChart.data.datasets[2].data[monthIndex] = savingsTotal;
+                    financialChart.data.datasets[3].data[monthIndex] = lendingTotal;
                     financialChart.update();
                 }
             }
         });
     </script>
 </body>
+
 </html>

@@ -23,44 +23,27 @@ def generate_year_data():
     
     # Sample accounts structure
     base_accounts = [
-        {'bank': 'Barclays', 'account': 'Main Account', 'type': 'Current', 'base_amount': 9000},
-        {'bank': 'Barclays', 'account': 'Joint Account', 'type': 'Current', 'base_amount': 300},
-        {'bank': 'Barclays', 'account': 'Rainy Day', 'type': 'Savings', 'base_amount': 5000},
-        {'bank': 'Barclays', 'account': 'ISA', 'type': 'Savings', 'base_amount': 15000},
-        {'bank': 'HSBC', 'account': 'Flex Account', 'type': 'Current', 'base_amount': 100},
-        {'bank': 'Lloyds', 'account': 'Easy Saver', 'type': 'Savings', 'base_amount': 1500},
-        {'bank': 'Lloyds', 'account': 'Credit Card', 'type': 'Current', 'base_amount': -1000},
+        {'bank': 'Barclays', 'account': 'Main Account', 'type': 'Current', 'base_amount': 0},
+        {'bank': 'Barclays', 'account': 'Joint Account', 'type': 'Current', 'base_amount': 0},
+        {'bank': 'Barclays', 'account': 'Rainy Day', 'type': 'Savings', 'base_amount': 0},
+        {'bank': 'Barclays', 'account': 'ISA', 'type': 'Savings', 'base_amount': 0},
+        {'bank': 'HSBC', 'account': 'Flex Account', 'type': 'Current', 'base_amount': 0},
+        {'bank': 'Lloyds', 'account': 'Easy Saver', 'type': 'Savings', 'base_amount': 0},
+        {'bank': 'Lloyds', 'account': 'Credit Card', 'type': 'Current', 'base_amount': 0},
+        {'bank': 'Family', 'account': 'Personal Loan', 'type': 'Lending', 'base_amount': 0},  # Add example lending account
     ]
     
-    # Generate account data for each month of 2025
+    # SET DEFAULTS: Generate account data for each month of 2025
     for month in range(1, 13):
         month_date = date(current_year, month, 1)
         
         for account in base_accounts:
-            # Add some random variations each month for a more realistic progression
-            variation = random.uniform(-0.05, 0.05)  # -5% to +5% variation
-            
-            if account['account'] == 'Credit Card':
-                # Make credit card more volatile
-                variation = random.uniform(-0.2, 0.15)
-            
-            # For savings, generally increase over time
-            if account['type'] == 'Savings' and account['account'] != 'Easy Saver':
-                variation = random.uniform(0, 0.08)  # 0% to 8% increase
-            
-            # For months earlier in the year, start with slightly lower amounts
-            # For months later in the year, progress to slightly higher amounts
-            month_progression = (month - 1) / 12.0  # 0 for Jan, 11/12 for Dec
-            progression_factor = 1 + (month_progression * 0.1)  # Up to 10% increase by year end
-            
-            amount = account['base_amount'] * (1 + variation) * progression_factor
-            
             MonthlyEntry.objects.create(
                 date=month_date,
                 bank_name=account['bank'],
                 account_name=account['account'],
                 account_type=account['type'],
-                amount=round(amount, 2),
+                amount=0,
                 notes=f"{calendar.month_name[month]} {current_year} value"
             )
 
@@ -107,6 +90,7 @@ def create_default_template(month_date):
         {'bank': 'HSBC', 'account': 'Flex Account', 'type': 'Current', 'amount': 0},
         {'bank': 'Lloyds', 'account': 'Easy Saver', 'type': 'Savings', 'amount': 0},
         {'bank': 'Lloyds', 'account': 'Credit Card', 'type': 'Current', 'amount': 0},
+        {'bank': 'Family', 'account': 'Personal Loan', 'type': 'Lending', 'amount': 0},  # Add example lending account
     ]
     
     for account in accounts:
@@ -137,7 +121,8 @@ def update_amount(request, entry_id):
             
             current_total = sum(e.amount for e in month_entries.filter(account_type='Current'))
             savings_total = sum(e.amount for e in month_entries.filter(account_type='Savings'))
-            grand_total = current_total + savings_total
+            lending_total = sum(e.amount for e in month_entries.filter(account_type='Lending'))
+            grand_total = current_total + savings_total + lending_total
             
             return JsonResponse({
                 'success': True, 
@@ -145,6 +130,7 @@ def update_amount(request, entry_id):
                 'amount': float(entry.amount),
                 'current_total': float(current_total),
                 'savings_total': float(savings_total),
+                'lending_total': float(lending_total),
                 'grand_total': float(grand_total)
             })
         except Exception as e:
@@ -205,12 +191,19 @@ def entry_form(request):
         month_date = entry.date.replace(day=1)
         
         if month_key not in entries_by_month:
-            entries_by_month[month_key] = {'current': [], 'savings': [], 'month_date': month_date}
+            entries_by_month[month_key] = {
+                'current': [], 
+                'savings': [], 
+                'lending': [],  # Add lending list
+                'month_date': month_date
+            }
         
         if entry.account_type == 'Current':
             entries_by_month[month_key]['current'].append(entry)
-        else:
+        elif entry.account_type == 'Savings':
             entries_by_month[month_key]['savings'].append(entry)
+        elif entry.account_type == 'Lending':
+            entries_by_month[month_key]['lending'].append(entry)
     
     # Filter and prepare data for 2025 months to show in horizontal scroller
     current_year_months = []
