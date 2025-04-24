@@ -5,6 +5,9 @@ class MonthlyEntry(models.Model):
         ('Current', 'Current'),
         ('Savings', 'Savings'),
         ('Lending', 'Lending'),
+        ('Deposits', 'Deposits'),
+        ('Pensions', 'Pensions'),
+        ('Credit Cards', 'Credit Cards'),
     ]
     
     date = models.DateField()

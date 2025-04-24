@@ -92,10 +92,6 @@
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-lg font-semibold">Monthly View</h2>
                 <div class="flex items-center space-x-4">
-                    <label class="text-sm font-medium text-gray-700">Year:</label>
-                    <select id="yearSelector" class="border p-2 rounded">
-                        <!-- Years will be populated by JavaScript -->
-                    </select>
                     <button id="scrollLeft" class="bg-gray-200 hover:bg-gray-300 rounded-full p-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd"
@@ -145,12 +141,36 @@
                         </div>
                     </div>
 
+                    <!-- Deposits -->
+                    <div class="mb-3">
+                        <div class="flex justify-between items-center text-sm font-medium text-gray-700 mb-1">
+                            <span>Deposits:</span>
+                            <span class="text-right">£{{ month_data.deposits|sum_amounts }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Pensions -->
+                    <div class="mb-3">
+                        <div class="flex justify-between items-center text-sm font-medium text-gray-700 mb-1">
+                            <span>Pensions:</span>
+                            <span class="text-right">£{{ month_data.pensions|sum_amounts }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Credit Cards -->
+                    <div class="mb-3">
+                        <div class="flex justify-between items-center text-sm font-medium text-gray-700 mb-1">
+                            <span>Credit Cards:</span>
+                            <span class="text-right">£{{ month_data.credit_cards|sum_amounts }}</span>
+                        </div>
+                    </div>
+
                     <!-- Total Assets for Month -->
                     <div class="pt-2 border-t">
                         <div class="flex justify-between items-center font-semibold">
                             <span>Total Assets:</span>
-                            {% with current_total=month_data.current|sum_amounts savings_total=month_data.savings|sum_amounts lending_total=month_data.lending|sum_amounts %}
-                                <span class="text-right">£{{ current_total|add:savings_total|add:lending_total }}</span>
+                            {% with current_total=month_data.current|sum_amounts savings_total=month_data.savings|sum_amounts lending_total=month_data.lending|sum_amounts deposits_total=month_data.deposits|sum_amounts pensions_total=month_data.pensions|sum_amounts credit_cards_total=month_data.credit_cards|sum_amounts %}
+                                <span class="text-right">£{{ current_total|add:savings_total|add:lending_total|add:deposits_total|add:pensions_total|subtract:credit_cards_total }}</span>
                             {% endwith %}
                         </div>
                     </div>
@@ -195,6 +215,9 @@
                                 <option value="Current">Current</option>
                                 <option value="Savings">Savings</option>
                                 <option value="Lending">Lending</option>
+                                <option value="Deposits">Deposits</option>
+                                <option value="Pensions">Pensions</option>
+                                <option value="Credit Cards">Credit Cards</option>
                             </select>
                         </div>
                     </div>
@@ -208,31 +231,372 @@
             </div>
         </div>
 
+        <!-- Add this after the Add Account Form section -->
+        <div class="bg-white rounded-lg shadow-md p-5 mb-8">
+            <div class="flex justify-between items-center">
+                <h2 class="text-lg font-semibold">Reset Data</h2>
+                <a href="{% url 'reset_data' %}" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded">
+                    Reset All Data
+                </a>
+            </div>
+        </div>
+
         <!-- Selected Month Detail View (initially hidden) -->
         <div id="monthDetailView" class="bg-white rounded-lg shadow-md overflow-hidden mb-8 hidden">
+            <!-- Header -->
             <div class="bg-gray-50 border-b p-4 flex justify-between items-center">
                 <h2 class="text-lg font-semibold" id="detailViewTitle">Month Detail</h2>
                 <button id="closeDetailView" class="text-gray-500 hover:text-gray-700">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd"
-                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                            clip-rule="evenodd" />
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
                     </svg>
                 </button>
             </div>
 
-            <div id="monthDetailContent"></div>
+            <!-- Account Type Tabs -->
+            <div class="border-b border-gray-200">
+                <nav class="flex overflow-x-auto" aria-label="Account Types">
+                    <button class="account-tab-btn active px-4 py-2 text-sm font-medium border-b-2 border-blue-500" data-type="current">
+                        Current Accounts
+                    </button>
+                    <button class="account-tab-btn px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300" data-type="savings">
+                        Savings
+                    </button>
+                    <button class="account-tab-btn px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300" data-type="lending">
+                        Lending
+                    </button>
+                    <button class="account-tab-btn px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300" data-type="deposits">
+                        Deposits
+                    </button>
+                    <button class="account-tab-btn px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300" data-type="pensions">
+                        Pensions
+                    </button>
+                    <button class="account-tab-btn px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300" data-type="credit-cards">
+                        Credit Cards
+                    </button>
+                    <button class="account-tab-btn px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300" data-type="summary">
+                        Summary
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Account Type Content -->
+            <div id="monthDetailContent">
+                <!-- Current Accounts Section -->
+                <div class="account-tab-content" data-type="current">
+                    <div class="p-4">
+                        <div class="mb-4">
+                            <h3 class="text-lg font-medium text-gray-900">Current Accounts Overview</h3>
+                            <p class="text-sm text-gray-600">Day-to-day banking accounts for regular transactions</p>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <!-- Account List -->
+                            <div class="bg-white rounded-lg border border-gray-200">
+                                {% for entry in month_data.current %}
+                                <div class="p-4 {% if not forloop.last %}border-b border-gray-200{% endif %}">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h4 class="font-medium text-gray-900">{{ entry.bank_name }}</h4>
+                                            <p class="text-sm text-gray-600">{{ entry.account_name }}</p>
+                                            {% if entry.notes %}
+                                            <p class="text-xs text-gray-500 mt-1">{{ entry.notes }}</p>
+                                            {% endif %}
+                                        </div>
+                                        <span class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
+                                            data-id="{{ entry.id }}" data-amount="{{ entry.amount }}" data-type="current"
+                                            data-month="{{ month_name }}">
+                                            £{{ entry.amount }}
+                                        </span>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="p-4 text-center text-gray-500">
+                                    <p>No current accounts found</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Statistics -->
+                            {% if month_data.current %}
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="bg-blue-50 rounded-lg p-4">
+                                    <h4 class="text-sm font-medium text-blue-800">Total Balance</h4>
+                                    <p class="text-2xl font-bold text-blue-600">£{{ month_data.current|sum_amounts }}</p>
+                                </div>
+                                <div class="bg-blue-50 rounded-lg p-4">
+                                    <h4 class="text-sm font-medium text-blue-800">Account Count</h4>
+                                    <p class="text-2xl font-bold text-blue-600">{{ month_data.current|length }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Savings Accounts Section -->
+                <div class="account-tab-content hidden" data-type="savings">
+                    <div class="p-4">
+                        <div class="mb-4">
+                            <h3 class="text-lg font-medium text-gray-900">Savings Accounts Overview</h3>
+                            <p class="text-sm text-gray-600">Interest-earning accounts for long-term savings</p>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <!-- Account List -->
+                            <div class="bg-white rounded-lg border border-gray-200">
+                                {% for entry in month_data.savings %}
+                                <div class="p-4 {% if not forloop.last %}border-b border-gray-200{% endif %}">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h4 class="font-medium text-gray-900">{{ entry.bank_name }}</h4>
+                                            <p class="text-sm text-gray-600">{{ entry.account_name }}</p>
+                                            {% if entry.notes %}
+                                            <p class="text-xs text-gray-500 mt-1">{{ entry.notes }}</p>
+                                            {% endif %}
+                                        </div>
+                                        <span class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
+                                            data-id="{{ entry.id }}" data-amount="{{ entry.amount }}" data-type="savings"
+                                            data-month="{{ month_name }}">
+                                            £{{ entry.amount }}
+                                        </span>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="p-4 text-center text-gray-500">
+                                    <p>No savings accounts found</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Statistics -->
+                            {% if month_data.savings %}
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="bg-green-50 rounded-lg p-4">
+                                    <h4 class="text-sm font-medium text-green-800">Total Savings</h4>
+                                    <p class="text-2xl font-bold text-green-600">£{{ month_data.savings|sum_amounts }}</p>
+                                </div>
+                                <div class="bg-green-50 rounded-lg p-4">
+                                    <h4 class="text-sm font-medium text-green-800">Account Count</h4>
+                                    <p class="text-2xl font-bold text-green-600">{{ month_data.savings|length }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lending Section -->
+                <div class="account-tab-content hidden" data-type="lending">
+                    <div class="p-4">
+                        <div class="mb-4">
+                            <h3 class="text-lg font-medium text-gray-900">Lending Overview</h3>
+                            <p class="text-sm text-gray-600">Loans and other lending accounts</p>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <!-- Account List -->
+                            <div class="bg-white rounded-lg border border-gray-200">
+                                {% for entry in month_data.lending %}
+                                <div class="p-4 {% if not forloop.last %}border-b border-gray-200{% endif %}">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h4 class="font-medium text-gray-900">{{ entry.bank_name }}</h4>
+                                            <p class="text-sm text-gray-600">{{ entry.account_name }}</p>
+                                            {% if entry.notes %}
+                                            <p class="text-xs text-gray-500 mt-1">{{ entry.notes }}</p>
+                                            {% endif %}
+                                        </div>
+                                        <span class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
+                                            data-id="{{ entry.id }}" data-amount="{{ entry.amount }}" data-type="lending"
+                                            data-month="{{ month_name }}">
+                                            £{{ entry.amount }}
+                                        </span>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="p-4 text-center text-gray-500">
+                                    <p>No lending accounts found</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Statistics -->
+                            {% if month_data.lending %}
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="bg-yellow-50 rounded-lg p-4">
+                                    <h4 class="text-sm font-medium text-yellow-800">Total Lending</h4>
+                                    <p class="text-2xl font-bold text-yellow-600">£{{ month_data.lending|sum_amounts }}</p>
+                                </div>
+                                <div class="bg-yellow-50 rounded-lg p-4">
+                                    <h4 class="text-sm font-medium text-yellow-800">Account Count</h4>
+                                    <p class="text-2xl font-bold text-yellow-600">{{ month_data.lending|length }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deposits Section -->
+                <div class="account-tab-content hidden" data-type="deposits">
+                    <div class="p-4">
+                        <div class="mb-4">
+                            <h3 class="text-lg font-medium text-gray-900">Deposits Overview</h3>
+                            <p class="text-sm text-gray-600">Fixed-term deposits and other deposit accounts</p>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <!-- Account List -->
+                            <div class="bg-white rounded-lg border border-gray-200">
+                                {% for entry in month_data.deposits %}
+                                <div class="p-4 {% if not forloop.last %}border-b border-gray-200{% endif %}">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h4 class="font-medium text-gray-900">{{ entry.bank_name }}</h4>
+                                            <p class="text-sm text-gray-600">{{ entry.account_name }}</p>
+                                            {% if entry.notes %}
+                                            <p class="text-xs text-gray-500 mt-1">{{ entry.notes }}</p>
+                                            {% endif %}
+                                        </div>
+                                        <span class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
+                                            data-id="{{ entry.id }}" data-amount="{{ entry.amount }}" data-type="deposits"
+                                            data-month="{{ month_name }}">
+                                            £{{ entry.amount }}
+                                        </span>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="p-4 text-center text-gray-500">
+                                    <p>No deposits found</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Statistics -->
+                            {% if month_data.deposits %}
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="bg-purple-50 rounded-lg p-4">
+                                    <h4 class="text-sm font-medium text-purple-800">Total Deposits</h4>
+                                    <p class="text-2xl font-bold text-purple-600">£{{ month_data.deposits|sum_amounts }}</p>
+                                </div>
+                                <div class="bg-purple-50 rounded-lg p-4">
+                                    <h4 class="text-sm font-medium text-purple-800">Account Count</h4>
+                                    <p class="text-2xl font-bold text-purple-600">{{ month_data.deposits|length }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pensions Section -->
+                <div class="account-tab-content hidden" data-type="pensions">
+                    <div class="p-4">
+                        <div class="mb-4">
+                            <h3 class="text-lg font-medium text-gray-900">Pensions Overview</h3>
+                            <p class="text-sm text-gray-600">Retirement and pension accounts</p>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <!-- Account List -->
+                            <div class="bg-white rounded-lg border border-gray-200">
+                                {% for entry in month_data.pensions %}
+                                <div class="p-4 {% if not forloop.last %}border-b border-gray-200{% endif %}">
+                                    <div class="flex justify-between items-center">
+                                        <div>
+                                            <h4 class="font-medium text-gray-900">{{ entry.bank_name }}</h4>
+                                            <p class="text-sm text-gray-600">{{ entry.account_name }}</p>
+                                            {% if entry.notes %}
+                                            <p class="text-xs text-gray-500 mt-1">{{ entry.notes }}</p>
+                                            {% endif %}
+                                        </div>
+                                        <span class="font-bold editable-amount text-green-600"
+                                            data-id="{{ entry.id }}" data-amount="{{ entry.amount }}" data-type="pensions"
+                                            data-month="{{ month_name }}">
+                                            £{{ entry.amount }}
+                                        </span>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="p-4 text-center text-gray-500">
+                                    <p>No pension accounts found</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Statistics -->
+                            {% if month_data.pensions %}
+                            <div class="bg-indigo-50 rounded-lg p-4">
+                                <h4 class="text-sm font-medium text-indigo-800">Total Pensions</h4>
+                                <p class="text-2xl font-bold text-indigo-600">£{{ month_data.pensions|sum_amounts }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Credit Cards Section -->
+                <div class="account-tab-content hidden" data-type="credit-cards">
+                    <div class="p-4">
+                        <div class="mb-4">
+                            <h3 class="text-lg font-medium text-gray-900">Credit Cards Overview</h3>
+                            <p class="text-sm text-gray-600">Credit card accounts and balances</p>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <!-- Account List -->
+                            <div class="bg-white rounded-lg border border-gray-200">
+                                {% for entry in month_data.credit_cards %}
+                                <div class="p-4 {% if not forloop.last %}border-b border-gray-200{% endif %}">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h4 class="font-medium text-gray-900">{{ entry.bank_name }}</h4>
+                                            <p class="text-sm text-gray-600">{{ entry.account_name }}</p>
+                                            {% if entry.notes %}
+                                            <p class="text-xs text-gray-500 mt-1">{{ entry.notes }}</p>
+                                            {% endif %}
+                                        </div>
+                                        <span class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
+                                            data-id="{{ entry.id }}" data-amount="{{ entry.amount }}" data-type="credit_cards"
+                                            data-month="{{ month_name }}">
+                                            £{{ entry.amount }}
+                                        </span>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="p-4 text-center text-gray-500">
+                                    <p>No credit card accounts found</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Statistics -->
+                            {% if month_data.credit_cards %}
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="bg-red-50 rounded-lg p-4">
+                                    <h4 class="text-sm font-medium text-red-800">Total Credit Card Balance</h4>
+                                    <p class="text-2xl font-bold text-red-600">£{{ month_data.credit_cards|sum_amounts }}</p>
+                                </div>
+                                <div class="bg-red-50 rounded-lg p-4">
+                                    <h4 class="text-sm font-medium text-red-800">Account Count</h4>
+                                    <p class="text-2xl font-bold text-red-600">{{ month_data.credit_cards|length }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- All Monthly Entries (Hidden by default) -->
         <div id="allMonthsContainer" class="hidden">
             {% for month_name, month_data in entries_by_month %}
             <div class="month-data-container" data-month="{{ month_name }}">
-                <!-- Two Column Layout for Current and Savings -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-                    <!-- Current Accounts -->
-                    <div>
-                        <h3 class="font-medium text-gray-700 mb-2 border-b pb-1">Current Accounts</h3>
+                <!-- Current Accounts Tab Content -->
+                <div class="account-tab-content" data-type="current">
+                    <div class="p-4">
                         <div class="space-y-2">
                             {% for entry in month_data.current %}
                             <div class="p-3 bg-gray-50 rounded flex justify-between items-center">
@@ -242,8 +606,7 @@
                                     <p class="text-xs text-gray-500">{{ entry.notes }}</p>
                                     {% endif %}
                                 </div>
-                                <span
-                                    class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
+                                <span class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
                                     data-id="{{ entry.id }}" data-amount="{{ entry.amount }}" data-type="current"
                                     data-month="{{ month_name }}">
                                     £{{ entry.amount }}
@@ -252,10 +615,9 @@
                             {% empty %}
                             <p class="text-gray-500 italic">No current accounts</p>
                             {% endfor %}
-
-                            <!-- Current Total -->
+                            
                             {% if month_data.current %}
-                            <div class="p-3 bg-blue-50 rounded mt-2 flex justify-between items-center">
+                            <div class="p-3 bg-blue-50 rounded mt-4 flex justify-between items-center">
                                 <p class="font-medium">Current Total</p>
                                 <span class="font-bold current-total" data-month="{{ month_name }}">
                                     £{{ month_data.current|sum_amounts }}
@@ -264,29 +626,30 @@
                             {% endif %}
                         </div>
                     </div>
+                </div>
 
-                    <!-- Savings Accounts -->
-                    <div>
-                        <h3 class="font-medium text-gray-700 mb-2 border-b pb-1">Savings Accounts</h3>
+                <!-- Savings Tab Content -->
+                <div class="account-tab-content hidden" data-type="savings">
+                    <div class="p-4">
                         <div class="space-y-2">
-                            {% for entry in month_data.savings %}
+                                {% for entry in month_data.savings %}
                             <div class="p-3 bg-gray-50 rounded flex justify-between items-center">
-                                <div>
+                                        <div>
                                     <p class="font-medium">{{ entry.bank_name }} - {{ entry.account_name }}</p>
-                                    {% if entry.notes %}
+                                            {% if entry.notes %}
                                     <p class="text-xs text-gray-500">{{ entry.notes }}</p>
-                                    {% endif %}
-                                </div>
+                                            {% endif %}
+                                        </div>
                                 <span
                                     class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
-                                    data-id="{{ entry.id }}" data-amount="{{ entry.amount }}" data-type="savings"
-                                    data-month="{{ month_name }}">
-                                    £{{ entry.amount }}
-                                </span>
-                            </div>
-                            {% empty %}
+                                            data-id="{{ entry.id }}" data-amount="{{ entry.amount }}" data-type="savings"
+                                            data-month="{{ month_name }}">
+                                            £{{ entry.amount }}
+                                        </span>
+                                </div>
+                                {% empty %}
                             <p class="text-gray-500 italic">No savings accounts</p>
-                            {% endfor %}
+                                {% endfor %}
 
                             <!-- Savings Total -->
                             {% if month_data.savings %}
@@ -311,20 +674,19 @@
                                     <p class="text-xs text-gray-500">{{ entry.notes }}</p>
                                     {% endif %}
                                 </div>
-                                <span
-                                    class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
-                                    data-id="{{ entry.id }}" data-amount="{{ entry.amount }}" data-type="savings"
+                                <span class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
+                                    data-id="{{ entry.id }}" data-amount="{{ entry.amount }}" data-type="lending"
                                     data-month="{{ month_name }}">
                                     £{{ entry.amount }}
                                 </span>
                             </div>
                             {% empty %}
-                            <p class="text-gray-500 italic">No Lending</p>
+                            <p class="text-gray-500 italic">No Lending Accounts</p>
                             {% endfor %}
 
                             <!-- Lending Total -->
                             {% if month_data.lending %}
-                            <div class="p-3 bg-green-50 rounded mt-2 flex justify-between items-center">
+                            <div class="p-3 bg-yellow-50 rounded mt-2 flex justify-between items-center">
                                 <p class="font-medium">Lending Total</p>
                                 <span class="font-bold lending-total" data-month="{{ month_name }}">
                                     £{{ month_data.lending|sum_amounts }}
@@ -335,19 +697,118 @@
                     </div>
                 </div>
 
+                <!-- Deposits -->
+                <div>
+                    <h3 class="font-medium text-gray-700 mb-2 border-b pb-1">Deposits</h3>
+                    <div class="space-y-2">
+                                {% for entry in month_data.deposits %}
+                        <div class="p-3 bg-gray-50 rounded flex justify-between items-center">
+                                        <div>
+                                <p class="font-medium">{{ entry.bank_name }} - {{ entry.account_name }}</p>
+                                            {% if entry.notes %}
+                                <p class="text-xs text-gray-500">{{ entry.notes }}</p>
+                                            {% endif %}
+                                        </div>
+                                        <span class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
+                                            data-id="{{ entry.id }}" data-amount="{{ entry.amount }}" data-type="deposits"
+                                            data-month="{{ month_name }}">
+                                            £{{ entry.amount }}
+                                        </span>
+                                </div>
+                                {% empty %}
+                        <p class="text-gray-500 italic">No deposits</p>
+                                {% endfor %}
+
+                            {% if month_data.deposits %}
+                        <div class="p-3 bg-green-50 rounded mt-2 flex justify-between items-center">
+                            <p class="font-medium">Deposits Total</p>
+                            <span class="font-bold deposits-total" data-month="{{ month_name }}">
+                                £{{ month_data.deposits|sum_amounts }}
+                            </span>
+                            </div>
+                            {% endif %}
+                    </div>
+                </div>
+
+                <!-- Pensions -->
+                <div>
+                    <h3 class="font-medium text-gray-700 mb-2 border-b pb-1">Pensions</h3>
+                    <div class="space-y-2">
+                                {% for entry in month_data.pensions %}
+                        <div class="p-3 bg-gray-50 rounded flex justify-between items-center">
+                                        <div>
+                                <p class="font-medium">{{ entry.bank_name }} - {{ entry.account_name }}</p>
+                                            {% if entry.notes %}
+                                <p class="text-xs text-gray-500">{{ entry.notes }}</p>
+                                            {% endif %}
+                                        </div>
+                                        <span class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
+                                            data-id="{{ entry.id }}" data-amount="{{ entry.amount }}" data-type="pensions"
+                                            data-month="{{ month_name }}">
+                                            £{{ entry.amount }}
+                                        </span>
+                                </div>
+                                {% empty %}
+                        <p class="text-gray-500 italic">No pensions</p>
+                                {% endfor %}
+
+                            {% if month_data.pensions %}
+                        <div class="p-3 bg-green-50 rounded mt-2 flex justify-between items-center">
+                            <p class="font-medium">Pensions Total</p>
+                            <span class="font-bold pensions-total" data-month="{{ month_name }}">
+                                £{{ month_data.pensions|sum_amounts }}
+                            </span>
+                            </div>
+                            {% endif %}
+                    </div>
+                </div>
+
+                <!-- Credit Cards -->
+                <div>
+                    <h3 class="font-medium text-gray-700 mb-2 border-b pb-1">Credit Cards</h3>
+                    <div class="space-y-2">
+                                {% for entry in month_data.credit_cards %}
+                        <div class="p-3 bg-gray-50 rounded flex justify-between items-center">
+                                        <div>
+                                <p class="font-medium">{{ entry.bank_name }} - {{ entry.account_name }}</p>
+                                            {% if entry.notes %}
+                                <p class="text-xs text-gray-500">{{ entry.notes }}</p>
+                                            {% endif %}
+                                        </div>
+                                        <span class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
+                                data-id="{{ entry.id }}" data-amount="{{ entry.amount }}" data-type="credit_cards"
+                                            data-month="{{ month_name }}">
+                                            £{{ entry.amount }}
+                                        </span>
+                                </div>
+                                {% empty %}
+                        <p class="text-gray-500 italic">No credit cards</p>
+                                {% endfor %}
+
+                            {% if month_data.credit_cards %}
+                        <div class="p-3 bg-red-50 rounded mt-2 flex justify-between items-center">
+                            <p class="font-medium">Credit Cards Total</p>
+                            <span class="font-bold credit-cards-total" data-month="{{ month_name }}">
+                                £{{ month_data.credit_cards|sum_amounts }}
+                            </span>
+                                </div>
+                        {% endif %}
+                                </div>
+                            </div>
+
                 <!-- Grand Total -->
                 <div class="p-4 bg-gray-100 border-t">
                     <div class="flex justify-between items-center font-semibold">
                         <p>Total Assets</p>
-                        {% with current_total=month_data.current|sum_amounts savings_total=month_data.savings|sum_amounts lending_total=month_data.lending|sum_amounts %}
-                            <span class="grand-total" data-month="{{ month_name }}">£{{ current_total|add:savings_total|add:lending_total }}</span>
+                        {% with current_total=month_data.current|sum_amounts savings_total=month_data.savings|sum_amounts lending_total=month_data.lending|sum_amounts deposits_total=month_data.deposits|sum_amounts pensions_total=month_data.pensions|sum_amounts credit_cards_total=month_data.credit_cards|sum_amounts %}
+                            <span class="grand-total" data-month="{{ month_name }}">£{{ current_total|add:savings_total|add:lending_total|add:deposits_total|add:pensions_total|subtract:credit_cards_total }}</span>
                         {% endwith %}
+                        </div>
                     </div>
                 </div>
-            </div>
             {% endfor %}
-        </div>
-    </div>
+                        </div>
+                            </div>
 
     <!-- JavaScript for inline editing and chart -->
     <script>
@@ -358,6 +819,9 @@
                 currentTotals: [],
                 savingsTotals: [],
                 lendingTotals: [],
+                depositsTotals: [],
+                pensionsTotals: [],
+                creditCardTotals: [],
                 grandTotals: []
             };
 
@@ -418,6 +882,33 @@
                             borderWidth: 1,
                             fill: false,
                             tension: 0.1
+                        },
+                        {
+                            label: 'Deposits',
+                            data: chartData.depositsTotals,
+                            backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                            borderColor: 'rgba(255, 206, 86, 1)',
+                            borderWidth: 1,
+                            fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Pensions',
+                            data: chartData.pensionsTotals,
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1,
+                            fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Credit Cards',
+                            data: chartData.creditCardTotals,
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1,
+                            fill: false,
+                            tension: 0.1
                         }
                     ]
                 },
@@ -452,30 +943,31 @@
                 this.textContent = isHidden ? 'Hide Form' : 'Show Form';
             });
 
-            // ----- Setup Year Selector -----
-            const yearSelector = document.getElementById('yearSelector');
-            const currentYear = new Date().getFullYear();
-
-            // Populate years (current year only)
-            for (let year = currentYear; year >= currentYear - 2; year--) {
-                const option = document.createElement('option');
-                option.value = year;
-                option.textContent = year;
-                if (year === currentYear) option.selected = true;
-                yearSelector.appendChild(option);
-            }
-
-            // Handle year selection change
-            yearSelector.addEventListener('change', function () {
-                // This would typically fetch data for the selected year
-                // For this version, we're just using the data we have
-                alert('Would fetch data for year: ' + this.value);
-            });
 
             // ----- Horizontal Scroll Buttons -----
             const scrollContainer = document.getElementById('monthScroller');
             const scrollLeftBtn = document.getElementById('scrollLeft');
             const scrollRightBtn = document.getElementById('scrollRight');
+
+            // Add this new function to scroll to current month
+            function scrollToCurrentMonth() {
+                const currentMonthCard = document.querySelector('.month-card.current');
+                if (currentMonthCard) {
+                    const containerWidth = scrollContainer.offsetWidth;
+                    const cardLeft = currentMonthCard.offsetLeft;
+                    const cardWidth = currentMonthCard.offsetWidth;
+                    
+                    // Calculate scroll position to center the current month
+                    const scrollPosition = cardLeft - (containerWidth / 2) + (cardWidth / 2);
+                    scrollContainer.scrollTo({
+                        left: scrollPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+
+            // Call the function when page loads
+            scrollToCurrentMonth();
 
             scrollLeftBtn.addEventListener('click', function () {
                 scrollContainer.scrollBy({ left: -300, behavior: 'smooth' });
@@ -490,24 +982,78 @@
             const monthDetailContent = document.getElementById('monthDetailContent');
             const detailViewTitle = document.getElementById('detailViewTitle');
 
+            function setupTabs(monthData) {
+                const tabButtons = document.querySelectorAll('.account-tab-btn');
+                const monthDetailContent = document.getElementById('monthDetailContent');
+
+                function switchTab(targetType) {
+                    // Update tab buttons
+                    tabButtons.forEach(btn => {
+                        if (btn.dataset.type === targetType) {
+                            btn.classList.add('active', 'border-blue-500', 'text-blue-600', 'border-b-2');
+                            btn.classList.remove('text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                        } else {
+                            btn.classList.remove('active', 'border-blue-500', 'text-blue-600', 'border-b-2');
+                            btn.classList.add('text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                        }
+                    });
+
+                    // Show the content for the selected tab
+                    const allContents = monthDetailContent.querySelectorAll('.account-tab-content');
+                    allContents.forEach(content => {
+                        if (content.dataset.type === targetType) {
+                            content.classList.remove('hidden');
+                        } else {
+                            content.classList.add('hidden');
+                        }
+                    });
+                }
+
+                // Add click handlers to tab buttons
+                tabButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const targetType = button.dataset.type;
+                        switchTab(targetType);
+                    });
+                });
+
+                // Initialize with first tab active
+                switchTab('current');
+            }
+
             // Handle "Edit Accounts" button clicks
-            document.querySelectorAll('.edit-month-btn').forEach(function (button) {
-                button.addEventListener('click', function () {
+            document.querySelectorAll('.edit-month-btn').forEach(function(button) {
+                button.addEventListener('click', function() {
                     const monthName = this.getAttribute('data-month-full');
+                    const monthDetailView = document.getElementById('monthDetailView');
+                    const monthDetailContent = document.getElementById('monthDetailContent');
                     const monthContainer = document.querySelector(`.month-data-container[data-month="${monthName}"]`);
 
                     if (monthContainer) {
                         // Update title
-                        detailViewTitle.textContent = monthName + ' Details';
+                        document.getElementById('detailViewTitle').textContent = monthName + ' Details';
 
-                        // Clone the content
+                        // Clear existing content
                         monthDetailContent.innerHTML = '';
-                        monthDetailContent.appendChild(monthContainer.cloneNode(true));
+                        
+                        // Clone each tab content
+                        const tabTypes = ['current', 'savings', 'lending', 'deposits', 'pensions', 'credit-cards', 'summary'];
+                        tabTypes.forEach(type => {
+                            const sourceContent = monthContainer.querySelector(`.account-tab-content[data-type="${type}"]`);
+                            if (sourceContent) {
+                                const clone = sourceContent.cloneNode(true);
+                                clone.classList.add('hidden'); // Hide all tabs initially
+                                monthDetailContent.appendChild(clone);
+                            }
+                        });
 
                         // Show the detail view
                         monthDetailView.classList.remove('hidden');
 
-                        // Setup editable amounts in the cloned content
+                        // Setup tabs
+                        setupTabs();
+
+                        // Setup editable amounts
                         setupEditableAmounts();
 
                         // Scroll to the detail view
@@ -590,13 +1136,13 @@
                             }
 
                             // Update totals
-                            updateTotals(monthName, data.current_total, data.savings_total, data.lending_total, data.grand_total);
+                            updateTotals(monthName, data.current_total, data.savings_total, data.lending_total, data.deposits_total, data.pensions_total, data.credit_cards_total, data.grand_total);
 
                             // Update the month cards in the scroller
-                            updateMonthCard(monthName, data.current_total, data.savings_total, data.lending_total, data.grand_total);
+                            updateMonthCard(monthName, data.current_total, data.savings_total, data.lending_total, data.deposits_total, data.pensions_total, data.credit_cards_total, data.grand_total);
 
                             // Update the chart
-                            updateChart(monthName, data.current_total, data.savings_total, data.lending_total, data.grand_total);
+                            updateChart(monthName, data.current_total, data.savings_total, data.lending_total, data.deposits_total, data.pensions_total, data.credit_cards_total, data.grand_total);
                         } else {
                             // Revert to original content on error
                             element.innerHTML = originalContent;
@@ -609,7 +1155,7 @@
                     });
             }
 
-            function updateTotals(monthName, currentTotal, savingsTotal, lendingTotal, grandTotal) {
+            function updateTotals(monthName, currentTotal, savingsTotal, lendingTotal, depositsTotal, pensionsTotal, creditCardsTotal, grandTotal) {
                 // Update all instances of the totals (both in detail view and hidden containers)
                 document.querySelectorAll(`.current-total[data-month="${monthName}"]`).forEach(el => {
                     el.textContent = '£' + currentTotal.toFixed(2);
@@ -623,35 +1169,63 @@
                     el.textContent = '£' + lendingTotal.toFixed(2);
                 });
 
+                document.querySelectorAll(`.deposits-total[data-month="${monthName}"]`).forEach(el => {
+                    el.textContent = '£' + depositsTotal.toFixed(2);
+                });
+
+                document.querySelectorAll(`.pensions-total[data-month="${monthName}"]`).forEach(el => {
+                    el.textContent = '£' + pensionsTotal.toFixed(2);
+                });
+
+                document.querySelectorAll(`.credit-cards-total[data-month="${monthName}"]`).forEach(el => {
+                    el.textContent = '£' + creditCardsTotal.toFixed(2);
+                });
+
                 document.querySelectorAll(`.grand-total[data-month="${monthName}"]`).forEach(el => {
                     el.textContent = '£' + grandTotal.toFixed(2);
                 });
             }
 
-            function updateMonthCard(monthName, currentTotal, savingsTotal, lendingTotal, grandTotal) {
+            function updateMonthCard(monthName, currentTotal, savingsTotal, lendingTotal, depositsTotal, pensionsTotal, creditCardsTotal, grandTotal) {
                 const monthCard = document.querySelector(`.month-card[data-month="${monthName}"]`);
                 if (monthCard) {
                     const currentElement = monthCard.querySelector('div:nth-child(2) span:last-child');
                     const savingsElement = monthCard.querySelector('div:nth-child(3) span:last-child');
                     const lendingElement = monthCard.querySelector('div:nth-child(4) span:last-child');
-                    const totalElement = monthCard.querySelector('div:nth-child(5) span:last-child');
+                    const depositsElement = monthCard.querySelector('div:nth-child(5) span:last-child');
+                    const pensionsElement = monthCard.querySelector('div:nth-child(6) span:last-child');
+                    const creditCardsElement = monthCard.querySelector('div:nth-child(7) span:last-child');
+                    const totalElement = monthCard.querySelector('div:nth-child(8) span:last-child');
 
                     if (currentElement) currentElement.textContent = '£' + currentTotal.toFixed(2);
                     if (savingsElement) savingsElement.textContent = '£' + savingsTotal.toFixed(2);
                     if (lendingElement) lendingElement.textContent = '£' + lendingTotal.toFixed(2);
+                    if (depositsElement) depositsElement.textContent = '£' + depositsTotal.toFixed(2);
+                    if (pensionsElement) pensionsElement.textContent = '£' + pensionsTotal.toFixed(2);
+                    if (creditCardsElement) creditCardsElement.textContent = '£' + creditCardsTotal.toFixed(2);
                     if (totalElement) totalElement.textContent = '£' + grandTotal.toFixed(2);
                 }
             }
 
-            function updateChart(monthName, currentTotal, savingsTotal, lendingTotal, grandTotal) {
+            function updateChart(monthName, currentTotal, savingsTotal, lendingTotal, depositsTotal, pensionsTotal, creditCardsTotal, grandTotal) {
                 const monthIndex = chartData.months.indexOf(monthName);
                 if (monthIndex !== -1) {
                     financialChart.data.datasets[0].data[monthIndex] = grandTotal;
                     financialChart.data.datasets[1].data[monthIndex] = currentTotal;
                     financialChart.data.datasets[2].data[monthIndex] = savingsTotal;
                     financialChart.data.datasets[3].data[monthIndex] = lendingTotal;
+                    financialChart.data.datasets[4].data[monthIndex] = depositsTotal;
+                    financialChart.data.datasets[5].data[monthIndex] = pensionsTotal;
+                    financialChart.data.datasets[6].data[monthIndex] = creditCardsTotal;
+                    financialChart.data.datasets[7].data[monthIndex] = currentTotal + savingsTotal + lendingTotal + depositsTotal + pensionsTotal - creditCardsTotal;
                     financialChart.update();
                 }
+            }
+
+            // Automatically open current month on page load
+            const currentMonthBtn = document.querySelector('.month-card.current .edit-month-btn');
+            if (currentMonthBtn) {
+                currentMonthBtn.click();
             }
         });
     </script>
