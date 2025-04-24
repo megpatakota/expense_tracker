@@ -2,57 +2,122 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from .models import MonthlyEntry
 from django import forms
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 import calendar
 from decimal import Decimal
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.core.serializers.json import DjangoJSONEncoder
+import random
 
-def generate_monthly_template():
-    """Generate template accounts for the current month if no data exists"""
-    current_date = date.today().replace(day=1)  # First day of current month
+def generate_year_data():
+    """Generate test data for all months of 2025 if they don't exist"""
+    current_year = 2025  # We're focusing only on 2025
     
-    # Check if data exists for this month
-    if MonthlyEntry.objects.filter(date__year=current_date.year, date__month=current_date.month).exists():
+    # Check if data for January 2025 exists (as a test for any data)
+    jan_date = date(current_year, 1, 1)
+    if MonthlyEntry.objects.filter(date__year=current_year).exists():
+        # Some data exists for this year, make sure all months are covered
+        ensure_all_months_exist(current_year)
         return
     
-    # Either copy from previous month or create template
-    prev_month = (current_date - timedelta(days=1)).replace(day=1)
-    prev_entries = MonthlyEntry.objects.filter(date__year=prev_month.year, date__month=prev_month.month)
+    # Sample accounts structure
+    base_accounts = [
+        {'bank': 'Barclays', 'account': 'Main Account', 'type': 'Current', 'base_amount': 9000},
+        {'bank': 'Barclays', 'account': 'Joint Account', 'type': 'Current', 'base_amount': 300},
+        {'bank': 'Barclays', 'account': 'Rainy Day', 'type': 'Savings', 'base_amount': 5000},
+        {'bank': 'Barclays', 'account': 'ISA', 'type': 'Savings', 'base_amount': 15000},
+        {'bank': 'HSBC', 'account': 'Flex Account', 'type': 'Current', 'base_amount': 100},
+        {'bank': 'Lloyds', 'account': 'Easy Saver', 'type': 'Savings', 'base_amount': 1500},
+        {'bank': 'Lloyds', 'account': 'Credit Card', 'type': 'Current', 'base_amount': -1000},
+    ]
     
-    if prev_entries.exists():
-        # Copy entries from previous month
-        for entry in prev_entries:
-            MonthlyEntry.objects.create(
-                date=current_date,
-                bank_name=entry.bank_name,
-                account_name=entry.account_name,
-                account_type=entry.account_type,
-                amount=entry.amount,
-                notes=""
-            )
-    else:
-        # Create template accounts
-        accounts = [
-            {'bank': 'Barclays', 'account': 'Main Account', 'type': 'Current', 'amount': 0},
-            {'bank': 'Barclays', 'account': 'Joint Account', 'type': 'Current', 'amount': 0},
-            {'bank': 'Barclays', 'account': 'Rainy Day', 'type': 'Savings', 'amount': 0},
-            {'bank': 'Barclays', 'account': 'ISA', 'type': 'Savings', 'amount': 0},
-            {'bank': 'HSBC', 'account': 'Flex Account', 'type': 'Current', 'amount': 0},
-            {'bank': 'Lloyds', 'account': 'Easy Saver', 'type': 'Savings', 'amount': 0},
-            {'bank': 'Lloyds', 'account': 'Credit Card', 'type': 'Current', 'amount': 0},
-        ]
+    # Generate account data for each month of 2025
+    for month in range(1, 13):
+        month_date = date(current_year, month, 1)
         
-        for account in accounts:
+        for account in base_accounts:
+            # Add some random variations each month for a more realistic progression
+            variation = random.uniform(-0.05, 0.05)  # -5% to +5% variation
+            
+            if account['account'] == 'Credit Card':
+                # Make credit card more volatile
+                variation = random.uniform(-0.2, 0.15)
+            
+            # For savings, generally increase over time
+            if account['type'] == 'Savings' and account['account'] != 'Easy Saver':
+                variation = random.uniform(0, 0.08)  # 0% to 8% increase
+            
+            # For months earlier in the year, start with slightly lower amounts
+            # For months later in the year, progress to slightly higher amounts
+            month_progression = (month - 1) / 12.0  # 0 for Jan, 11/12 for Dec
+            progression_factor = 1 + (month_progression * 0.1)  # Up to 10% increase by year end
+            
+            amount = account['base_amount'] * (1 + variation) * progression_factor
+            
             MonthlyEntry.objects.create(
-                date=current_date,
+                date=month_date,
                 bank_name=account['bank'],
                 account_name=account['account'],
                 account_type=account['type'],
-                amount=account['amount'],
+                amount=round(amount, 2),
+                notes=f"{calendar.month_name[month]} {current_year} value"
+            )
+
+def ensure_all_months_exist(year=2025):
+    """Make sure all months of the specified year have data"""
+    for month in range(1, 13):
+        month_date = date(year, month, 1)
+        
+        # Check if any data exists for this month
+        if not MonthlyEntry.objects.filter(date__year=year, date__month=month).exists():
+            # No data for this month, copy from the most recent previous month
+            copy_from_previous_month(month_date)
+
+def copy_from_previous_month(target_date):
+    """Copy entries from the most recent previous month to the target month"""
+    # Find the most recent month before target_date that has entries
+    existing_months = MonthlyEntry.objects.filter(date__lt=target_date).dates('date', 'month', order='DESC')
+    
+    if existing_months:
+        prev_month_date = existing_months[0]
+        prev_entries = MonthlyEntry.objects.filter(date__year=prev_month_date.year, date__month=prev_month_date.month)
+        
+        # Copy entries to target month
+        for entry in prev_entries:
+            MonthlyEntry.objects.create(
+                date=target_date,
+                bank_name=entry.bank_name,
+                account_name=entry.account_name,
+                account_type=entry.account_type,
+                amount=entry.amount,  # Keep same amount
                 notes=""
             )
+    else:
+        # No previous months exist, create default template
+        create_default_template(target_date)
+
+def create_default_template(month_date):
+    """Create template accounts for the specified month"""
+    accounts = [
+        {'bank': 'Barclays', 'account': 'Main Account', 'type': 'Current', 'amount': 0},
+        {'bank': 'Barclays', 'account': 'Joint Account', 'type': 'Current', 'amount': 0},
+        {'bank': 'Barclays', 'account': 'Rainy Day', 'type': 'Savings', 'amount': 0},
+        {'bank': 'Barclays', 'account': 'ISA', 'type': 'Savings', 'amount': 0},
+        {'bank': 'HSBC', 'account': 'Flex Account', 'type': 'Current', 'amount': 0},
+        {'bank': 'Lloyds', 'account': 'Easy Saver', 'type': 'Savings', 'amount': 0},
+        {'bank': 'Lloyds', 'account': 'Credit Card', 'type': 'Current', 'amount': 0},
+    ]
+    
+    for account in accounts:
+        MonthlyEntry.objects.create(
+            date=month_date,
+            bank_name=account['bank'],
+            account_name=account['account'],
+            account_type=account['type'],
+            amount=account['amount'],
+            notes=""
+        )
 
 @csrf_exempt
 def update_amount(request, entry_id):
@@ -122,13 +187,19 @@ def add_account(request):
     return redirect('entry_form')
 
 def entry_form(request):
-    # Generate template for current month if needed
-    generate_monthly_template()
+    # Generate data for all months of 2025
+    generate_year_data()
     
-    # Group entries by month
+    # Group entries by month for all data
     entries_by_month = {}
     entries = MonthlyEntry.objects.all()
     
+    # Current month and year
+    today = date.today()
+    current_year = 2025  # Focus on 2025
+    current_month = today.month
+    
+    # Group entries for all months
     for entry in entries:
         month_key = f"{calendar.month_name[entry.date.month]} {entry.date.year}"
         month_date = entry.date.replace(day=1)
@@ -141,11 +212,33 @@ def entry_form(request):
         else:
             entries_by_month[month_key]['savings'].append(entry)
     
-    # Sort months in reverse chronological order
+    # Filter and prepare data for 2025 months to show in horizontal scroller
+    current_year_months = []
+    for month in range(1, 13):
+        month_date = date(current_year, month, 1)
+        month_key = f"{calendar.month_name[month]} {current_year}"
+        
+        if month_key in entries_by_month:
+            month_data = entries_by_month[month_key]
+            
+            # Mark if this is the current month
+            is_current_month = (month == current_month and current_year == today.year)
+            
+            # Create a copy with the current month flag
+            month_data_copy = month_data.copy()
+            month_data_copy['is_current'] = is_current_month
+            
+            current_year_months.append((month_key, month_data_copy))
+    
+    # Ensure all months are in chronological order (January to December)
+    current_year_months.sort(key=lambda x: x[1]['month_date'].month)
+    
+    # Also get the complete list of all data (for chart and hidden data)
     sorted_months = sorted(entries_by_month.items(), 
-                         key=lambda x: x[1]['month_date'], 
-                         reverse=True)
+                        key=lambda x: x[1]['month_date'], 
+                        reverse=True)
     
     return render(request, 'tracker/entry_form.html', {
-        'entries_by_month': sorted_months
+        'entries_by_month': sorted_months,
+        'current_year_months': current_year_months,
     })
