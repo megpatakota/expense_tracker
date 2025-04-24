@@ -1,20 +1,23 @@
 from django.db import models
 
 class MonthlyEntry(models.Model):
-    date = models.DateField(unique=True)
-    account_name = models.CharField(max_length=100)
-    account_type = models.CharField(max_length=50, choices=[
+    ACCOUNT_TYPE_CHOICES = [
         ('Current', 'Current'),
         ('Savings', 'Savings'),
-        ('Credit Card', 'Credit Card'),
-        ('Loan', 'Loan'),
-        ('Pension', 'Pension'),
-        ('Expense', 'Expense'),
-        ('Income', 'Income'),
-        ('Tax', 'Tax')
-    ])
+    ]
+    
+    date = models.DateField()
+    bank_name = models.CharField(max_length=100)
+    account_name = models.CharField(max_length=100)
+    account_type = models.CharField(max_length=50, choices=ACCOUNT_TYPE_CHOICES)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     notes = models.TextField(blank=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['date', 'bank_name', 'account_name']),
+        ]
+        ordering = ['-date', 'bank_name', 'account_name']
+
     def __str__(self):
-        return f"{self.account_name} - {self.date} ({self.amount})"
+        return f"{self.bank_name} - {self.account_name} ({self.date.strftime('%Y-%m')}): {self.amount}"
