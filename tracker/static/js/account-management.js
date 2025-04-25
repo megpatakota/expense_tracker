@@ -60,8 +60,12 @@ function setupAccountEditButtons() {
         
         console.log('Submitting account update:', accountId, bankName, accountName);
         
-        // Send update request
-        updateAccountDetails(accountId, bankName, accountName);
+        // Send update request and close the modal after success
+        updateAccountDetails(accountId, bankName, accountName, true);
+        
+        // Reset the form values
+        document.getElementById('editBankName').value = '';
+        document.getElementById('editAccountName').value = '';
     });
 }
 
@@ -104,7 +108,7 @@ function setupDeleteAccountButtons() {
     });
 }
 
-function updateAccountDetails(accountId, bankName, accountName) {
+function updateAccountDetails(accountId, bankName, accountName, closeAfterUpdate = false) {
     console.log('Sending update request for account:', accountId);
     
     // Make AJAX request to update account details
@@ -125,14 +129,22 @@ function updateAccountDetails(accountId, bankName, accountName) {
         console.log('Update response:', data);
         
         if (data.success) {
-            // Hide the modal
-            document.getElementById('editAccountModal').classList.add('hidden');
+            // Conditionally hide the modal based on closeAfterUpdate parameter
+            if (closeAfterUpdate) {
+                document.getElementById('editAccountModal').classList.add('hidden');
+            }
             
             // Update all instances of this account in the DOM
             updateAccountInDOM(accountId, bankName, accountName);
             
             // Show success message
             showNotification('Account details updated successfully', 'success');
+            
+            // Only update form values if we're keeping the modal open
+            if (!closeAfterUpdate) {
+                document.getElementById('editBankName').value = bankName;
+                document.getElementById('editAccountName').value = accountName;
+            }
         } else {
             // Show error message
             showNotification(`Error: ${data.error}`, 'error');
@@ -160,16 +172,14 @@ function deleteAccount(accountId) {
         console.log('Delete response:', data);
         
         if (data.success) {
-            // Hide the modal
+            // Hide only the delete confirmation modal
             document.getElementById('deleteAccountModal').classList.add('hidden');
             
             // Remove all instances of this account from the DOM
             removeAccountFromDOM(accountId);
             
-            // Reload the page after a short delay to refresh all data
-            setTimeout(function() {
-                location.reload();
-            }, 1000);
+            // Update the UI without page reload to keep month details open
+            updateUIAfterDeletion(data);
             
             // Show success message
             showNotification('Account deleted successfully', 'success');
@@ -182,6 +192,54 @@ function deleteAccount(accountId) {
         console.error('Error:', error);
         showNotification('An error occurred while deleting the account', 'error');
     });
+}
+
+function updateUIAfterDeletion(data) {
+    // Update totals in the month details view without closing it
+    if (data.month && data.totals) {
+        const monthName = data.month;
+        const totals = data.totals;
+        
+        // Update the totals display in the month details view
+        updateTotals(
+            monthName, 
+            totals.current_total, 
+            totals.savings_total, 
+            totals.lending_total, 
+            totals.deposits_total, 
+            totals.pensions_total, 
+            totals.credit_cards_total, 
+            totals.grand_total
+        );
+        
+        // Update the month card in the scroller
+        updateMonthCard(
+            monthName, 
+            totals.current_total, 
+            totals.savings_total, 
+            totals.lending_total, 
+            totals.deposits_total, 
+            totals.pensions_total, 
+            totals.credit_cards_total, 
+            totals.grand_total
+        );
+        
+        // Update the chart if it exists
+        try {
+            updateChart(
+                monthName, 
+                totals.current_total, 
+                totals.savings_total, 
+                totals.lending_total, 
+                totals.deposits_total, 
+                totals.pensions_total, 
+                totals.credit_cards_total, 
+                totals.grand_total
+            );
+        } catch (e) {
+            console.log('Chart update skipped:', e);
+        }
+    }
 }
 
 function updateAccountInDOM(accountId, bankName, accountName) {
