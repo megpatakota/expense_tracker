@@ -1,4 +1,7 @@
+console.log('Script.js loaded');
+
 document.addEventListener('DOMContentLoaded', function () {
+    console.log('DOM Content Loaded');
     // ----- Chart Data -----
     const chartData = {
         months: [],
@@ -128,7 +131,6 @@ document.addEventListener('DOMContentLoaded', function () {
         form.classList.toggle('hidden');
         this.textContent = isHidden ? 'Hide Form' : 'Show Form';
     });
-
 
     // ----- Horizontal Scroll Buttons -----
     const scrollContainer = document.getElementById('monthScroller');
@@ -411,4 +413,4 @@ document.addEventListener('DOMContentLoaded', function () {
     if (currentMonthBtn) {
         currentMonthBtn.click();
     }
-});
+}); 
