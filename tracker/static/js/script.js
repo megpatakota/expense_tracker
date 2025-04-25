@@ -10,14 +10,6 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log('DOM Content Loaded');
     window.scrollTo(0, 0);
 
-    // ----- Toggle Add Account form -----
-    document.getElementById('toggleAddForm').addEventListener('click', function () {
-        const form = document.getElementById('addAccountForm');
-        const isHidden = form.classList.contains('hidden');
-        form.classList.toggle('hidden');
-        this.textContent = isHidden ? 'Hide Form' : 'Show Form';
-    });
-
     // ----- Horizontal Scroll Buttons -----
     const scrollContainer = document.getElementById('monthScroller');
     const scrollLeftBtn = document.getElementById('scrollLeft');
@@ -183,6 +175,7 @@ document.addEventListener('DOMContentLoaded', function () {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken(),
             },
             body: JSON.stringify({
                 amount: newAmount
@@ -224,77 +217,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('Error:', error);
             });
     }
-
-    function updateTotals(monthName, currentTotal, savingsTotal, lendingTotal, depositsTotal, pensionsTotal, creditCardsTotal, grandTotal) {
-        // Update all instances of the totals (both in detail view and hidden containers)
-        document.querySelectorAll(`.current-total[data-month="${monthName}"]`).forEach(el => {
-            el.textContent = '£' + currentTotal.toFixed(2);
-        });
-
-        document.querySelectorAll(`.savings-total[data-month="${monthName}"]`).forEach(el => {
-            el.textContent = '£' + savingsTotal.toFixed(2);
-        });
-
-        document.querySelectorAll(`.lending-total[data-month="${monthName}"]`).forEach(el => {
-            el.textContent = '£' + lendingTotal.toFixed(2);
-        });
-
-        document.querySelectorAll(`.deposits-total[data-month="${monthName}"]`).forEach(el => {
-            el.textContent = '£' + depositsTotal.toFixed(2);
-        });
-
-        document.querySelectorAll(`.pensions-total[data-month="${monthName}"]`).forEach(el => {
-            el.textContent = '£' + pensionsTotal.toFixed(2);
-        });
-
-        document.querySelectorAll(`.credit-cards-total[data-month="${monthName}"]`).forEach(el => {
-            el.textContent = '£' + creditCardsTotal.toFixed(2);
-        });
-
-        document.querySelectorAll(`.grand-total[data-month="${monthName}"]`).forEach(el => {
-            el.textContent = '£' + grandTotal.toFixed(2);
-        });
-    }
-
-    function updateMonthCard(monthName, currentTotal, savingsTotal, lendingTotal, depositsTotal, pensionsTotal, creditCardsTotal, grandTotal) {
-        const monthCard = document.querySelector(`.month-card[data-month="${monthName}"]`);
-        if (monthCard) {
-            const currentElement = monthCard.querySelector('div:nth-child(2) span:last-child');
-            const savingsElement = monthCard.querySelector('div:nth-child(3) span:last-child');
-            const lendingElement = monthCard.querySelector('div:nth-child(4) span:last-child');
-            const depositsElement = monthCard.querySelector('div:nth-child(5) span:last-child');
-            const pensionsElement = monthCard.querySelector('div:nth-child(6) span:last-child');
-            const creditCardsElement = monthCard.querySelector('div:nth-child(7) span:last-child');
-            const totalElement = monthCard.querySelector('div:nth-child(8) span:last-child');
-
-            if (currentElement) currentElement.textContent = '£' + currentTotal.toFixed(2);
-            if (savingsElement) savingsElement.textContent = '£' + savingsTotal.toFixed(2);
-            if (lendingElement) lendingElement.textContent = '£' + lendingTotal.toFixed(2);
-            if (depositsElement) depositsElement.textContent = '£' + depositsTotal.toFixed(2);
-            if (pensionsElement) pensionsElement.textContent = '£' + pensionsTotal.toFixed(2);
-            if (creditCardsElement) creditCardsElement.textContent = '£' + creditCardsTotal.toFixed(2);
-            if (totalElement) totalElement.textContent = '£' + grandTotal.toFixed(2);
-        }
-    }
-
-    function updateChart(monthName, currentTotal, savingsTotal, lendingTotal, depositsTotal, pensionsTotal, creditCardsTotal, grandTotal) {
-        const monthIndex = chartData.months.indexOf(monthName);
-        if (monthIndex !== -1) {
-            financialChart.data.datasets[0].data[monthIndex] = grandTotal;
-            financialChart.data.datasets[1].data[monthIndex] = currentTotal;
-            financialChart.data.datasets[2].data[monthIndex] = savingsTotal;
-            financialChart.data.datasets[3].data[monthIndex] = lendingTotal;
-            financialChart.data.datasets[4].data[monthIndex] = depositsTotal;
-            financialChart.data.datasets[5].data[monthIndex] = pensionsTotal;
-            financialChart.data.datasets[6].data[monthIndex] = creditCardsTotal;
-            financialChart.data.datasets[7].data[monthIndex] = currentTotal + savingsTotal + lendingTotal + depositsTotal + pensionsTotal - creditCardsTotal;
-            financialChart.update();
-        }
-    }
-
 });
-
-// Add these safer chart update functions to your script.js or chart.js file
 
 /**
  * Safely updates totals for a month
@@ -428,4 +351,48 @@ function updateChart(monthName, currentTotal, savingsTotal, lendingTotal, deposi
     } catch (error) {
         console.error('Error updating chart:', error);
     }
+}
+
+function getCsrfToken() {
+    // Try to get token from cookie
+    const cookieValue = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('csrftoken='))
+        ?.split('=')[1];
+    
+    if (cookieValue) return cookieValue;
+    
+    // As a fallback, try to get from a meta tag
+    const metaTag = document.querySelector('meta[name="csrf-token"]');
+    if (metaTag) return metaTag.getAttribute('content');
+    
+    // If we can't find it, return an empty string
+    console.warn('CSRF token not found. Form submissions may fail.');
+    return '';
+}
+
+function showNotification(message, type) {
+    console.log('Showing notification:', type, message);
+    
+    const notification = document.getElementById('notification');
+    const notificationMessage = document.getElementById('notificationMessage');
+    
+    // Set message and styling
+    notificationMessage.textContent = message;
+    
+    if (type === 'success') {
+        notification.classList.remove('bg-red-100', 'border-red-500', 'text-red-700');
+        notification.classList.add('bg-green-100', 'border-green-500', 'text-green-700');
+    } else {
+        notification.classList.remove('bg-green-100', 'border-green-500', 'text-green-700');
+        notification.classList.add('bg-red-100', 'border-red-500', 'text-red-700');
+    }
+    
+    // Show notification
+    notification.classList.remove('hidden');
+    
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+        notification.classList.add('hidden');
+    }, 3000);
 }
