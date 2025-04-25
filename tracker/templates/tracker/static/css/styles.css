@@ -1,0 +1,160 @@
+.editable-amount {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.editable-amount:hover {
+    background-color: rgba(37, 99, 235, 0.1);
+    border-radius: 0.25rem;
+}
+
+.amount-input {
+    width: 8rem;
+    text-align: right;
+}
+
+.month-section {
+    transition: max-height 0.3s ease-out;
+    overflow: hidden;
+}
+
+.month-section.collapsed {
+    max-height: 3.5rem;
+}
+
+.month-section.expanded {
+    max-height: 1000px;
+}
+
+.scroll-container {
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: thin;
+    -ms-overflow-style: none;
+    padding-bottom: 8px;
+}
+
+.scroll-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.scroll-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.month-card {
+    display: inline-block;
+    white-space: normal;
+    vertical-align: top;
+}
+
+.month-card.current {
+    border: 2px solid #3b82f6;
+}
+
+/* Additional styles for Bank Account Tracker */
+
+/* Card styles */
+.month-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.month-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Account tab styling */
+.account-tab-btn {
+    position: relative;
+    transition: color 0.2s, border-color 0.2s;
+}
+
+.account-tab-btn.active {
+    border-bottom: 2px solid #3b82f6;
+    color: #3b82f6;
+}
+
+.account-tab-btn:hover:not(.active) {
+    border-bottom: 2px solid #e5e7eb;
+}
+
+/* Button styling */
+.edit-month-btn {
+    transition: background-color 0.2s;
+}
+
+.edit-month-btn:hover {
+    background-color: #2563eb;
+}
+
+/* Summary Chart section */
+#financialSummaryChart {
+    min-height: 250px;
+}
+
+/* Detail view transitions */
+#monthDetailView {
+    transition: opacity 0.3s;
+}
+
+#monthDetailView.hidden {
+    display: none;
+    opacity: 0;
+}
+
+#monthDetailView:not(.hidden) {
+    opacity: 1;
+}
+
+/* Form animations */
+#addAccountForm {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+#addAccountForm:not(.hidden) {
+    max-height: 300px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .month-card {
+        width: 90%;
+    }
+    
+    .scroll-container {
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+    }
+    
+    .month-card {
+        scroll-snap-align: start;
+    }
+}
+
+/* Loading animation for AJAX requests */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}

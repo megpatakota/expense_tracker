@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -9,74 +10,15 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Add Chart.js via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        .editable-amount {
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
+    {% load static %}
 
-        .editable-amount:hover {
-            background-color: rgba(37, 99, 235, 0.1);
-            border-radius: 0.25rem;
-        }
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 
-        .amount-input {
-            width: 8rem;
-            text-align: right;
-        }
 
-        .month-section {
-            transition: max-height 0.3s ease-out;
-            overflow: hidden;
-        }
-
-        .month-section.collapsed {
-            max-height: 3.5rem;
-        }
-
-        .month-section.expanded {
-            max-height: 1000px;
-        }
-
-        .scroll-container {
-            overflow-x: auto;
-            white-space: nowrap;
-            scrollbar-width: thin;
-            -ms-overflow-style: none;
-            padding-bottom: 8px;
-        }
-
-        .scroll-container::-webkit-scrollbar {
-            height: 8px;
-        }
-
-        .scroll-container::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
-        }
-
-        .scroll-container::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
-        }
-
-        .scroll-container::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-
-        .month-card {
-            display: inline-block;
-            white-space: normal;
-            vertical-align: top;
-        }
-
-        .month-card.current {
-            border: 2px solid #3b82f6;
-        }
-    </style>
 </head>
 
 <body class="bg-gray-50">
+
     {% load account_filters %}
     <div class="container mx-auto px-4 py-6">
         <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Monthly Bank Account Tracker</h1>
@@ -990,11 +932,11 @@
                     // Update tab buttons
                     tabButtons.forEach(btn => {
                         if (btn.dataset.type === targetType) {
-                            btn.classList.add('active', 'border-blue-500', 'text-blue-600', 'border-b-2');
-                            btn.classList.remove('text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                            btn.classList.add('active', 'border-blue-500', 'text-blue-600');
+                            btn.classList.remove('text-gray-500');
                         } else {
-                            btn.classList.remove('active', 'border-blue-500', 'text-blue-600', 'border-b-2');
-                            btn.classList.add('text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                            btn.classList.remove('active', 'border-blue-500', 'text-blue-600');
+                            btn.classList.add('text-gray-500');
                         }
                     });
 
@@ -1033,18 +975,16 @@
                         // Update title
                         document.getElementById('detailViewTitle').textContent = monthName + ' Details';
 
+                        // Get all tab contents from the source
+                        const tabContents = monthContainer.querySelectorAll('.account-tab-content');
+                        
                         // Clear existing content
                         monthDetailContent.innerHTML = '';
                         
                         // Clone each tab content
-                        const tabTypes = ['current', 'savings', 'lending', 'deposits', 'pensions', 'credit-cards', 'summary'];
-                        tabTypes.forEach(type => {
-                            const sourceContent = monthContainer.querySelector(`.account-tab-content[data-type="${type}"]`);
-                            if (sourceContent) {
-                                const clone = sourceContent.cloneNode(true);
-                                clone.classList.add('hidden'); // Hide all tabs initially
-                                monthDetailContent.appendChild(clone);
-                            }
+                        tabContents.forEach(content => {
+                            const clone = content.cloneNode(true);
+                            monthDetailContent.appendChild(clone);
                         });
 
                         // Show the detail view
