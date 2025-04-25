@@ -21,11 +21,27 @@
         <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Monthly Bank Account Tracker</h1>
 
         <!-- Summary Chart Section -->
-        <div class="bg-white rounded-lg shadow-md p-5 mb-8">
-            <h2 class="text-lg font-semibold mb-4">Financial Summary</h2>
-            <canvas id="financialSummaryChart" height="100"></canvas>
+<!-- Enhanced Charts Section with Improved Layout -->
+<div class="bg-white rounded-lg shadow-md p-5 mb-8">
+    <div class="flex flex-col md:flex-row md:flex-wrap">
+      <!-- Pie Chart Section (40% width) -->
+      <div class="md:w-2/5 pr-0 md:pr-4 mb-6 md:mb-0">
+        <h2 class="text-lg font-semibold mb-2">Account Type Distribution</h2>
+        <div style="height: 280px; position: relative;">
+          <canvas id="assetsLiabilitiesPieChart"></canvas>
         </div>
-
+      </div>
+      
+      <!-- Line Chart Section (60% width) -->
+      <div class="md:w-3/5">
+        <h2 class="text-lg font-semibold mb-2">Financial Summary</h2>
+        <div style="height: 280px; position: relative;">
+          <canvas id="financialSummaryChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+    
         <!-- Year Selector and Month Scroller -->
         <div class="bg-white rounded-lg shadow-md p-5 mb-8">
             <div class="flex justify-between items-center mb-4">
@@ -777,9 +793,7 @@
         </div>
 
         <script src="{% static 'js/script.js' %}"></script>
-        <script>
-            console.log('Script loaded');
-        </script>
+        <script src="{% static 'js/chart.js' %}"></script>
 </body>
 
 </html>

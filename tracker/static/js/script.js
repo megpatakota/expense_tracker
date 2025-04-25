@@ -8,132 +8,7 @@ link.href = '/static/css/styles.css';
 
 document.addEventListener('DOMContentLoaded', function () {
     console.log('DOM Content Loaded');
-    // ----- Chart Data -----
-    const chartData = {
-        months: [],
-        currentTotals: [],
-        savingsTotals: [],
-        lendingTotals: [],
-        depositsTotals: [],
-        pensionsTotals: [],
-        creditCardTotals: [],
-        grandTotals: []
-    };
-
-    document.querySelectorAll('.month-data-container').forEach(function (monthSection) {
-        const monthName = monthSection.getAttribute('data-month');
-        const currentTotal = parseFloat(monthSection.querySelector('.current-total')?.textContent.replace('£', '') || 0);
-        const savingsTotal = parseFloat(monthSection.querySelector('.savings-total')?.textContent.replace('£', '') || 0);
-        const lendingTotal = parseFloat(monthSection.querySelector('.lending-total')?.textContent.replace('£', '') || 0);
-        const depositsTotal = parseFloat(monthSection.querySelector('.deposits-total')?.textContent.replace('£', '') || 0);
-        const pensionsTotal = parseFloat(monthSection.querySelector('.pensions-total')?.textContent.replace('£', '') || 0);
-        const creditCardTotal = parseFloat(monthSection.querySelector('.credit-cards-total')?.textContent.replace('£', '') || 0);
-        const grandTotal = parseFloat(monthSection.querySelector('.grand-total')?.textContent.replace('£', '') || 0);
-    
-        chartData.months.unshift(monthName);
-        chartData.currentTotals.unshift(currentTotal);
-        chartData.savingsTotals.unshift(savingsTotal);
-        chartData.lendingTotals.unshift(lendingTotal);
-        chartData.depositsTotals.unshift(depositsTotal);
-        chartData.pensionsTotals.unshift(pensionsTotal);
-        chartData.creditCardTotals.unshift(creditCardTotal);
-        chartData.grandTotals.unshift(grandTotal);
-    });
-
-    // Initialize Chart
-    const ctx = document.getElementById('financialSummaryChart').getContext('2d');
-    const financialChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: chartData.months,
-            datasets: [
-                {
-                    label: 'Total Assets',
-                    data: chartData.grandTotals,
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 2,
-                    fill: false,
-                    tension: 0.1
-                },
-                {
-                    label: 'Current Accounts',
-                    data: chartData.currentTotals,
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1,
-                    fill: false,
-                    tension: 0.1
-                },
-                {
-                    label: 'Savings Accounts',
-                    data: chartData.savingsTotals,
-                    backgroundColor: 'rgba(153, 102, 255, 0.2)',
-                    borderColor: 'rgba(153, 102, 255, 1)',
-                    borderWidth: 1,
-                    fill: false,
-                    tension: 0.1
-                },
-                {
-                    label: 'Lending Accounts',
-                    data: chartData.lendingTotals,
-                    backgroundColor: 'rgba(255, 159, 64, 0.2)',
-                    borderColor: 'rgba(255, 159, 64, 1)',
-                    borderWidth: 1,
-                    fill: false,
-                    tension: 0.1
-                },
-                {
-                    label: 'Deposits',
-                    data: chartData.depositsTotals,
-                    backgroundColor: 'rgba(255, 206, 86, 0.2)',
-                    borderColor: 'rgba(255, 206, 86, 1)',
-                    borderWidth: 1,
-                    fill: false,
-                    tension: 0.1
-                },
-                {
-                    label: 'Pensions',
-                    data: chartData.pensionsTotals,
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1,
-                    fill: false,
-                    tension: 0.1
-                },
-                {
-                    label: 'Credit Cards',
-                    data: chartData.creditCardTotals,
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    borderWidth: 1,
-                    fill: false,
-                    tension: 0.1
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: false,
-                    title: {
-                        display: true,
-                        text: 'Amount (£)'
-                    }
-                }
-            },
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: function (context) {
-                            return context.dataset.label + ': £' + context.raw.toFixed(2);
-                        }
-                    }
-                }
-            }
-        }
-    });
+    window.scrollTo(0, 0);
 
     // ----- Toggle Add Account form -----
     document.getElementById('toggleAddForm').addEventListener('click', function () {
@@ -178,8 +53,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ----- Month Detail View -----
     const monthDetailView = document.getElementById('monthDetailView');
-    const monthDetailContent = document.getElementById('monthDetailContent');
-    const detailViewTitle = document.getElementById('detailViewTitle');
 
     function setupTabs(monthData) {
         const tabButtons = document.querySelectorAll('.account-tab-btn');
@@ -419,9 +292,4 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Automatically open current month on page load
-    const currentMonthBtn = document.querySelector('.month-card.current .edit-month-btn');
-    if (currentMonthBtn) {
-        currentMonthBtn.click();
-    }
-}); 
+});
