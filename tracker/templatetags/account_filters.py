@@ -34,3 +34,14 @@ def filter_by_type(entries, account_type):
         return [entry for entry in entries if entry.account_type == account_type]
     except (TypeError, AttributeError):
         return []
+    
+@register.filter
+def calculate_total_assets(month_data):
+    current = sum(entry.amount for entry in month_data.get('current', []))
+    savings = sum(entry.amount for entry in month_data.get('savings', []))
+    lending = sum(entry.amount for entry in month_data.get('lending', []))
+    deposits = sum(entry.amount for entry in month_data.get('deposits', []))
+    pensions = sum(entry.amount for entry in month_data.get('pensions', []))
+    credit_cards = sum(entry.amount for entry in month_data.get('credit_cards', []))
+    
+    return current + savings + lending + deposits + pensions - credit_cards

@@ -23,11 +23,12 @@ def generate_year_data():
     
     # Sample accounts structure - Fixed the 'base_amount' to 'amount' inconsistency
     base_accounts = [
-        {'bank': 'Barclays', 'account': 'Main Account', 'type': 'Current', 'amount': 2500},
-        {'bank': 'Barclays', 'account': 'Joint Account', 'type': 'Current', 'amount': 1500},
+        {'bank': 'Barclays', 'account': 'Main Account', 'type': 'Current', 'amount': 0},
+        {'bank': 'Barclays', 'account': 'Joint Account', 'type': 'Current', 'amount': 0},
+        {'bank': 'Lloyds', 'account': 'Credit Card', 'type': 'Current', 'amount': 0},
+        {'bank': 'HSBC', 'account': 'Flex Account', 'type': 'Current', 'amount': 0},
         {'bank': 'Barclays', 'account': 'Rainy Day', 'type': 'Savings', 'amount': 5000},
         {'bank': 'Barclays', 'account': 'ISA', 'type': 'Savings', 'amount': 10000},
-        {'bank': 'HSBC', 'account': 'Flex Account', 'type': 'Current', 'amount': 1000},
         {'bank': 'Lloyds', 'account': 'Easy Saver', 'type': 'Savings', 'amount': 3000},
         {'bank': 'Family', 'account': 'Personal Loan', 'type': 'Lending', 'amount': 5000},
         {'bank': 'Deanston Building', 'account': 'Deposit till Apr 26', 'type': 'Deposits', 'amount': 1575},
@@ -36,12 +37,10 @@ def generate_year_data():
         {'bank': 'Barclaycard', 'account': 'Credit Card', 'type': 'Credit Cards', 'amount': -750},
     ]
     
-    print("Creating default accounts for 2025...")  # Debug print
     
     # Generate account data for each month of 2025
     for month in range(1, 13):
         month_date = date(current_year, month, 1)
-        print(f"Creating accounts for {calendar.month_name[month]} {current_year}")  # Debug print
         
         for account in base_accounts:
             entry = MonthlyEntry.objects.create(
@@ -52,9 +51,7 @@ def generate_year_data():
                 amount=account['amount'],  # Use the predefined amount
                 notes=f"{calendar.month_name[month]} {current_year} value"
             )
-            print(f"Created entry: {entry.bank_name} - {entry.account_name} ({entry.account_type}): £{entry.amount}")  # Debug print
 
-    print("Finished creating default accounts")  # Debug print
 
 def ensure_all_months_exist(year=2025):
     """Make sure all months of the specified year have data"""
@@ -92,18 +89,18 @@ def copy_from_previous_month(target_date):
 def create_default_template(month_date):
     """Create template accounts for the specified month"""
     accounts = [
-        {'bank': 'Barclays', 'account': 'Main Account', 'type': 'Current', 'amount': 0},
+ {'bank': 'Barclays', 'account': 'Main Account', 'type': 'Current', 'amount': 0},
         {'bank': 'Barclays', 'account': 'Joint Account', 'type': 'Current', 'amount': 0},
-        {'bank': 'Barclays', 'account': 'Rainy Day', 'type': 'Savings', 'amount': 0},
-        {'bank': 'Barclays', 'account': 'ISA', 'type': 'Savings', 'amount': 0},
-        {'bank': 'HSBC', 'account': 'Flex Account', 'type': 'Current', 'amount': 0},
-        {'bank': 'Lloyds', 'account': 'Easy Saver', 'type': 'Savings', 'amount': 0},
         {'bank': 'Lloyds', 'account': 'Credit Card', 'type': 'Current', 'amount': 0},
-        {'bank': 'Family', 'account': 'Personal Loan', 'type': 'Lending', 'amount': 0},  
+        {'bank': 'HSBC', 'account': 'Flex Account', 'type': 'Current', 'amount': 0},
+        {'bank': 'Barclays', 'account': 'Rainy Day', 'type': 'Savings', 'amount': 5000},
+        {'bank': 'Barclays', 'account': 'ISA', 'type': 'Savings', 'amount': 10000},
+        {'bank': 'Lloyds', 'account': 'Easy Saver', 'type': 'Savings', 'amount': 3000},
+        {'bank': 'Family', 'account': 'Personal Loan', 'type': 'Lending', 'amount': 5000},
         {'bank': 'Deanston Building', 'account': 'Deposit till Apr 26', 'type': 'Deposits', 'amount': 1575},
-        {'bank': 'RetireReady', 'account': '', 'type': 'Pensions', 'amount': 13000},
-        {'bank': 'Llyods Cashback', 'account': 'Credit Card', 'type': 'Credit Cards', 'amount': 0},
-        {'bank': 'Barclaycard', 'account': 'Credit Card', 'type': 'Credit Cards', 'amount': 0},
+        {'bank': 'RetireReady', 'account': 'Pension Fund', 'type': 'Pensions', 'amount': 13000},
+        {'bank': 'Lloyds Cashback', 'account': 'Credit Card', 'type': 'Credit Cards', 'amount': -500},
+        {'bank': 'Barclaycard', 'account': 'Credit Card', 'type': 'Credit Cards', 'amount': -750},
     ]
     
     for account in accounts:
@@ -198,19 +195,6 @@ def entry_form(request):
     # Generate data for all months of 2025
     generate_year_data()
     
-    # Add debug information
-    print("\nDebug Information:")
-    print("Checking database entries...")
-    
-    # Check total entries
-    total_entries = MonthlyEntry.objects.count()
-    print(f"Total entries in database: {total_entries}")
-    
-    # Check entries by type
-    for account_type in ['Current', 'Savings', 'Lending', 'Deposits', 'Pensions', 'Credit Cards']:
-        count = MonthlyEntry.objects.filter(account_type=account_type).count()
-        print(f"{account_type} accounts: {count}")
-    
     # Group entries by month for all data
     entries_by_month = {}
     entries = MonthlyEntry.objects.all().order_by('date', 'bank_name', 'account_name')
@@ -241,7 +225,6 @@ def entry_form(request):
         if account_type in entries_by_month[month_key]:
             # Only add entry to the list if it matches the account type
             entries_by_month[month_key][account_type].append(entry)
-            print(f"Added {entry.bank_name} - {entry.account_name} to {account_type} for {month_key}")  # Debug print
     
     # Filter and prepare data for 2025 months to show in horizontal scroller
     current_year_months = []
@@ -268,16 +251,6 @@ def entry_form(request):
     sorted_months = sorted(entries_by_month.items(), 
                          key=lambda x: x[1]['month_date'],
                          reverse=True)
-    
-    # Let's print some debug information
-    print(f"Total entries found: {entries.count()}")
-    for month_key, month_data in sorted_months:
-        print(f"\nMonth: {month_key}")
-        for account_type in ['current', 'savings', 'lending', 'deposits', 'pensions', 'credit_cards']:
-            entries = month_data[account_type]
-            print(f"{account_type.title()}: {len(entries)} entries")
-            for entry in entries:
-                print(f"  - {entry.bank_name} - {entry.account_name}: £{entry.amount}")
     
     return render(request, 'tracker/entry_form.html', {
         'entries_by_month': sorted_months,
