@@ -1,0 +1,108 @@
+/* account-management.css */
+/* Styles for account management functionality */
+
+/* Account edit/delete buttons */
+.edit-account-btn, .delete-account-btn {
+    padding: 2px 6px;
+    font-size: 0.75rem;
+    transition: background-color 0.2s, color 0.2s;
+    border-radius: 0.25rem;
+}
+
+.edit-account-btn:hover {
+    background-color: rgba(37, 99, 235, 0.1);
+}
+
+.delete-account-btn:hover {
+    background-color: rgba(220, 38, 38, 0.1);
+}
+
+/* Modal styles */
+.account-modal {
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.account-modal:not(.hidden) {
+    opacity: 1;
+}
+
+.modal-content {
+    transform: translateY(-20px);
+    transition: transform 0.3s ease;
+}
+
+.account-modal:not(.hidden) .modal-content {
+    transform: translateY(0);
+}
+
+/* Notification toast */
+#notification {
+    transform: translateY(20px);
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+#notification:not(.hidden) {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* Account row highlight on hover */
+.account-row {
+    transition: background-color 0.2s ease;
+}
+
+.account-row:hover {
+    background-color: rgba(243, 244, 246, 1);
+}
+
+/* Input field animations */
+.form-input {
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-input:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* Button animations */
+.modal-btn {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+}
+
+.modal-btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%);
+    transform-origin: 50% 50%;
+}
+
+.modal-btn:focus:not(:active)::after {
+    animation: ripple 1s ease-out;
+}
+
+@keyframes ripple {
+    0% {
+        transform: scale(0, 0);
+        opacity: 0.5;
+    }
+    20% {
+        transform: scale(25, 25);
+        opacity: 0.3;
+    }
+    100% {
+        opacity: 0;
+        transform: scale(40, 40);
+    }
+}

@@ -12,6 +12,7 @@
     {% load static %}
 
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'css/account-management.css' %}">
 </head>
 
 <body class="bg-gray-50">
@@ -241,6 +242,10 @@
                 <!-- Account Type Content -->
                 <div id="monthDetailContent">
                     <!-- Current Accounts Section -->
+                    <!-- This is a template for how each account row should be structured in the entry_form.html file -->
+                    <!-- Replace the existing account rows in the detail view with this template -->
+
+                    <!-- For current accounts tab (and similarly for other tabs) -->
                     <div class="account-tab-content" data-type="current">
                         <div class="p-4">
                             <div class="mb-4">
@@ -253,21 +258,48 @@
                                 <!-- Account List -->
                                 <div class="bg-white rounded-lg border border-gray-200">
                                     {% for entry in month_data.current %}
-                                    <div class="p-4 {% if not forloop.last %}border-b border-gray-200{% endif %}">
+                                    <div class="p-4 {% if not forloop.last %}border-b border-gray-200{% endif %} account-row"
+                                        data-id="{{ entry.id }}">
                                         <div class="flex justify-between items-start">
                                             <div>
-                                                <h4 class="font-medium text-gray-900">{{ entry.bank_name }}</h4>
-                                                <p class="text-sm text-gray-600">{{ entry.account_name }}</p>
+                                                <h4 class="font-medium text-gray-900 bank-name">{{ entry.bank_name }}
+                                                </h4>
+                                                <p class="text-sm text-gray-600 account-name">{{ entry.account_name }}
+                                                </p>
                                                 {% if entry.notes %}
                                                 <p class="text-xs text-gray-500 mt-1">{{ entry.notes }}</p>
                                                 {% endif %}
                                             </div>
-                                            <span
-                                                class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
-                                                data-id="{{ entry.id }}" data-amount="{{ entry.amount }}"
-                                                data-type="current" data-month="{{ month_name }}">
-                                                £{{ entry.amount }}
-                                            </span>
+                                            <div class="flex flex-col items-end">
+                                                <span
+                                                    class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
+                                                    data-id="{{ entry.id }}" data-amount="{{ entry.amount }}"
+                                                    data-type="current" data-month="{{ month_name }}">
+                                                    £{{ entry.amount }}
+                                                </span>
+                                                <div class="mt-2 flex space-x-2">
+                                                    <button
+                                                        class="edit-account-btn text-blue-600 hover:text-blue-800 text-sm">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline"
+                                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                        </svg>
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        class="delete-account-btn text-red-600 hover:text-red-800 text-sm">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline"
+                                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     {% empty %}
@@ -277,7 +309,7 @@
                                     {% endfor %}
                                 </div>
 
-                                <!-- Statistics -->
+                                <!-- Statistics remain unchanged -->
                                 {% if month_data.current %}
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div class="bg-blue-50 rounded-lg p-4">
@@ -573,24 +605,40 @@
                         <div class="p-4">
                             <div class="space-y-2">
                                 {% for entry in month_data.current %}
-                                <div class="p-3 bg-gray-50 rounded flex justify-between items-center">
+                                <div class="p-3 bg-gray-50 rounded flex justify-between items-center account-row" data-id="{{ entry.id }}">
                                     <div>
-                                        <p class="font-medium">{{ entry.bank_name }} - {{ entry.account_name }}</p>
+                                        <p class="font-medium bank-name">{{ entry.bank_name }}</p>
+                                        <p class="text-sm text-gray-600 account-name">{{ entry.account_name }}</p>
                                         {% if entry.notes %}
                                         <p class="text-xs text-gray-500">{{ entry.notes }}</p>
                                         {% endif %}
                                     </div>
-                                    <span
-                                        class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
-                                        data-id="{{ entry.id }}" data-amount="{{ entry.amount }}" data-type="current"
-                                        data-month="{{ month_name }}">
-                                        £{{ entry.amount }}
-                                    </span>
+                                    <div class="flex flex-col items-end">
+                                        <span class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
+                                              data-id="{{ entry.id }}" data-amount="{{ entry.amount }}" data-type="current"
+                                              data-month="{{ month_name }}">
+                                            £{{ entry.amount }}
+                                        </span>
+                                        <div class="mt-2 flex space-x-2">
+                                            <button class="edit-account-btn text-blue-600 hover:text-blue-800 text-sm">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                                Edit
+                                            </button>
+                                            <button class="delete-account-btn text-red-600 hover:text-red-800 text-sm">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                                 {% empty %}
                                 <p class="text-gray-500 italic">No current accounts</p>
                                 {% endfor %}
-
+            
                                 {% if month_data.current %}
                                 <div class="p-3 bg-blue-50 rounded mt-4 flex justify-between items-center">
                                     <p class="font-medium">Current Total</p>
@@ -602,31 +650,46 @@
                             </div>
                         </div>
                     </div>
-
+            
                     <!-- Savings Tab Content -->
                     <div class="account-tab-content hidden" data-type="savings">
                         <div class="p-4">
                             <div class="space-y-2">
                                 {% for entry in month_data.savings %}
-                                <div class="p-3 bg-gray-50 rounded flex justify-between items-center">
+                                <div class="p-3 bg-gray-50 rounded flex justify-between items-center account-row" data-id="{{ entry.id }}">
                                     <div>
-                                        <p class="font-medium">{{ entry.bank_name }} - {{ entry.account_name }}</p>
+                                        <p class="font-medium bank-name">{{ entry.bank_name }}</p>
+                                        <p class="text-sm text-gray-600 account-name">{{ entry.account_name }}</p>
                                         {% if entry.notes %}
                                         <p class="text-xs text-gray-500">{{ entry.notes }}</p>
                                         {% endif %}
                                     </div>
-                                    <span
-                                        class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
-                                        data-id="{{ entry.id }}" data-amount="{{ entry.amount }}" data-type="savings"
-                                        data-month="{{ month_name }}">
-                                        £{{ entry.amount }}
-                                    </span>
+                                    <div class="flex flex-col items-end">
+                                        <span class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
+                                              data-id="{{ entry.id }}" data-amount="{{ entry.amount }}" data-type="savings"
+                                              data-month="{{ month_name }}">
+                                            £{{ entry.amount }}
+                                        </span>
+                                        <div class="mt-2 flex space-x-2">
+                                            <button class="edit-account-btn text-blue-600 hover:text-blue-800 text-sm">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                                Edit
+                                            </button>
+                                            <button class="delete-account-btn text-red-600 hover:text-red-800 text-sm">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                                 {% empty %}
                                 <p class="text-gray-500 italic">No savings accounts</p>
                                 {% endfor %}
-
-                                <!-- Savings Total -->
+            
                                 {% if month_data.savings %}
                                 <div class="p-3 bg-green-50 rounded mt-2 flex justify-between items-center">
                                     <p class="font-medium">Savings Total</p>
@@ -638,31 +701,46 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Lending Details -->
+                    
+                    <!-- Lending accounts -->
                     <div class="account-tab-content hidden" data-type="lending">
                         <div class="p-4">
                             <div class="space-y-2">
                                 {% for entry in month_data.lending %}
-                                <div class="p-3 bg-gray-50 rounded flex justify-between items-center">
+                                <div class="p-3 bg-gray-50 rounded flex justify-between items-center account-row" data-id="{{ entry.id }}">
                                     <div>
-                                        <p class="font-medium">{{ entry.bank_name }} - {{ entry.account_name }}</p>
+                                        <p class="font-medium bank-name">{{ entry.bank_name }}</p>
+                                        <p class="text-sm text-gray-600 account-name">{{ entry.account_name }}</p>
                                         {% if entry.notes %}
                                         <p class="text-xs text-gray-500">{{ entry.notes }}</p>
                                         {% endif %}
                                     </div>
-                                    <span
-                                        class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
-                                        data-id="{{ entry.id }}" data-amount="{{ entry.amount }}" data-type="lending"
-                                        data-month="{{ month_name }}">
-                                        £{{ entry.amount }}
-                                    </span>
+                                    <div class="flex flex-col items-end">
+                                        <span class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
+                                              data-id="{{ entry.id }}" data-amount="{{ entry.amount }}" data-type="lending"
+                                              data-month="{{ month_name }}">
+                                            £{{ entry.amount }}
+                                        </span>
+                                        <div class="mt-2 flex space-x-2">
+                                            <button class="edit-account-btn text-blue-600 hover:text-blue-800 text-sm">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                                Edit
+                                            </button>
+                                            <button class="delete-account-btn text-red-600 hover:text-red-800 text-sm">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                                 {% empty %}
-                                <p class="text-gray-500 italic">No Lending Accounts</p>
+                                <p class="text-gray-500 italic">No lending accounts</p>
                                 {% endfor %}
-
-                                <!-- Lending Total -->
+            
                                 {% if month_data.lending %}
                                 <div class="p-3 bg-yellow-50 rounded mt-2 flex justify-between items-center">
                                     <p class="font-medium">Lending Total</p>
@@ -674,32 +752,48 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Deposits Tab Content -->
+                    
+                    <!-- Deposits accounts -->
                     <div class="account-tab-content hidden" data-type="deposits">
                         <div class="p-4">
                             <div class="space-y-2">
                                 {% for entry in month_data.deposits %}
-                                <div class="p-3 bg-gray-50 rounded flex justify-between items-center">
+                                <div class="p-3 bg-gray-50 rounded flex justify-between items-center account-row" data-id="{{ entry.id }}">
                                     <div>
-                                        <p class="font-medium">{{ entry.bank_name }} - {{ entry.account_name }}</p>
+                                        <p class="font-medium bank-name">{{ entry.bank_name }}</p>
+                                        <p class="text-sm text-gray-600 account-name">{{ entry.account_name }}</p>
                                         {% if entry.notes %}
                                         <p class="text-xs text-gray-500">{{ entry.notes }}</p>
                                         {% endif %}
                                     </div>
-                                    <span
-                                        class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
-                                        data-id="{{ entry.id }}" data-amount="{{ entry.amount }}" data-type="deposits"
-                                        data-month="{{ month_name }}">
-                                        £{{ entry.amount }}
-                                    </span>
+                                    <div class="flex flex-col items-end">
+                                        <span class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
+                                              data-id="{{ entry.id }}" data-amount="{{ entry.amount }}" data-type="deposits"
+                                              data-month="{{ month_name }}">
+                                            £{{ entry.amount }}
+                                        </span>
+                                        <div class="mt-2 flex space-x-2">
+                                            <button class="edit-account-btn text-blue-600 hover:text-blue-800 text-sm">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                                Edit
+                                            </button>
+                                            <button class="delete-account-btn text-red-600 hover:text-red-800 text-sm">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                                 {% empty %}
                                 <p class="text-gray-500 italic">No deposits</p>
                                 {% endfor %}
-
+            
                                 {% if month_data.deposits %}
-                                <div class="p-3 bg-green-50 rounded mt-2 flex justify-between items-center">
+                                <div class="p-3 bg-purple-50 rounded mt-2 flex justify-between items-center">
                                     <p class="font-medium">Deposits Total</p>
                                     <span class="font-bold deposits-total" data-month="{{ month_name }}">
                                         £{{ month_data.deposits|sum_amounts }}
@@ -709,32 +803,48 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Pensions Tab Content -->
+                    
+                    <!-- Pensions accounts -->
                     <div class="account-tab-content hidden" data-type="pensions">
                         <div class="p-4">
                             <div class="space-y-2">
                                 {% for entry in month_data.pensions %}
-                                <div class="p-3 bg-gray-50 rounded flex justify-between items-center">
+                                <div class="p-3 bg-gray-50 rounded flex justify-between items-center account-row" data-id="{{ entry.id }}">
                                     <div>
-                                        <p class="font-medium">{{ entry.bank_name }} - {{ entry.account_name }}</p>
+                                        <p class="font-medium bank-name">{{ entry.bank_name }}</p>
+                                        <p class="text-sm text-gray-600 account-name">{{ entry.account_name }}</p>
                                         {% if entry.notes %}
                                         <p class="text-xs text-gray-500">{{ entry.notes }}</p>
                                         {% endif %}
                                     </div>
-                                    <span
-                                        class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
-                                        data-id="{{ entry.id }}" data-amount="{{ entry.amount }}" data-type="pensions"
-                                        data-month="{{ month_name }}">
-                                        £{{ entry.amount }}
-                                    </span>
+                                    <div class="flex flex-col items-end">
+                                        <span class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
+                                              data-id="{{ entry.id }}" data-amount="{{ entry.amount }}" data-type="pensions"
+                                              data-month="{{ month_name }}">
+                                            £{{ entry.amount }}
+                                        </span>
+                                        <div class="mt-2 flex space-x-2">
+                                            <button class="edit-account-btn text-blue-600 hover:text-blue-800 text-sm">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                                Edit
+                                            </button>
+                                            <button class="delete-account-btn text-red-600 hover:text-red-800 text-sm">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                                 {% empty %}
                                 <p class="text-gray-500 italic">No pensions</p>
                                 {% endfor %}
-
+            
                                 {% if month_data.pensions %}
-                                <div class="p-3 bg-green-50 rounded mt-2 flex justify-between items-center">
+                                <div class="p-3 bg-indigo-50 rounded mt-2 flex justify-between items-center">
                                     <p class="font-medium">Pensions Total</p>
                                     <span class="font-bold pensions-total" data-month="{{ month_name }}">
                                         £{{ month_data.pensions|sum_amounts }}
@@ -744,25 +854,41 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Credit Cards Tab Content -->
+                    
+                    <!-- Credit Cards accounts -->
                     <div class="account-tab-content hidden" data-type="credit-cards">
                         <div class="p-4">
                             <div class="space-y-2">
                                 {% for entry in month_data.credit_cards %}
-                                <div class="p-3 bg-gray-50 rounded flex justify-between items-center">
+                                <div class="p-3 bg-gray-50 rounded flex justify-between items-center account-row" data-id="{{ entry.id }}">
                                     <div>
-                                        <p class="font-medium">{{ entry.bank_name }} - {{ entry.account_name }}</p>
+                                        <p class="font-medium bank-name">{{ entry.bank_name }}</p>
+                                        <p class="text-sm text-gray-600 account-name">{{ entry.account_name }}</p>
                                         {% if entry.notes %}
                                         <p class="text-xs text-gray-500">{{ entry.notes }}</p>
                                         {% endif %}
                                     </div>
-                                    <span
-                                        class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
-                                        data-id="{{ entry.id }}" data-amount="{{ entry.amount }}"
-                                        data-type="credit_cards" data-month="{{ month_name }}">
-                                        £{{ entry.amount }}
-                                    </span>
+                                    <div class="flex flex-col items-end">
+                                        <span class="font-bold editable-amount {% if entry.amount < 0 %}text-red-600{% else %}text-green-600{% endif %}"
+                                              data-id="{{ entry.id }}" data-amount="{{ entry.amount }}" data-type="credit_cards"
+                                              data-month="{{ month_name }}">
+                                            £{{ entry.amount }}
+                                        </span>
+                                        <div class="mt-2 flex space-x-2">
+                                            <button class="edit-account-btn text-blue-600 hover:text-blue-800 text-sm">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                                Edit
+                                            </button>
+                                            <button class="delete-account-btn text-red-600 hover:text-red-800 text-sm">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                                 {% empty %}
                                 <p class="text-gray-500 italic">No credit cards</p>
@@ -804,6 +930,101 @@
                 </a>
             </div>
         </div>
+
+
+        <!-- Account Edit Modal -->
+        <div id="editAccountModal"
+            class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <div class="mt-3">
+                    <div class="flex justify-between items-center pb-3 border-b">
+                        <h3 class="text-lg font-medium text-gray-900">Edit Account Details</h3>
+                        <button id="closeEditModal" class="text-gray-400 hover:text-gray-500">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <form id="editAccountForm" class="mt-4">
+                        <input type="hidden" id="editAccountId">
+
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="editBankName">
+                                Bank Name
+                            </label>
+                            <input id="editBankName" type="text"
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="editAccountName">
+                                Account Name
+                            </label>
+                            <input id="editAccountName" type="text"
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                required>
+                        </div>
+
+                        <div class="flex items-center justify-end mt-4">
+                            <button type="submit"
+                                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                                Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Delete Confirmation Modal -->
+        <div id="deleteAccountModal"
+            class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <div class="mt-3">
+                    <div class="flex justify-between items-center pb-3 border-b">
+                        <h3 class="text-lg font-medium text-gray-900">Confirm Account Deletion</h3>
+                        <button id="closeDeleteModal" class="text-gray-400 hover:text-gray-500">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="mt-4">
+                        <p class="text-gray-700">Are you sure you want to delete the following account?</p>
+                        <p id="accountToDelete" class="font-semibold text-gray-900 mt-2"></p>
+                        <p class="text-sm text-gray-500 mt-2">This will delete the account from all months and cannot be
+                            undone.</p>
+
+                        <input type="hidden" id="deleteAccountId">
+
+                        <div class="flex items-center justify-end mt-4 space-x-3">
+                            <button id="closeDeleteModal"
+                                class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                                Cancel
+                            </button>
+                            <button id="confirmDeleteAccount"
+                                class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Toast -->
+        <div id="notification"
+            class="fixed bottom-4 right-4 px-4 py-3 rounded-lg shadow-md border-l-4 hidden transition-opacity duration-300 z-50">
+            <p id="notificationMessage" class="text-sm font-medium"></p>
+        </div>
+
+        <!-- Include the account management script -->
+        <script src="{% static 'js/account-management.js' %}"></script>
         <script src="{% static 'js/site-style-config.js' %}"></script>
         <script src="{% static 'js/script.js' %}"></script>
         <script src="{% static 'js/chart.js' %}"></script>

@@ -263,3 +263,107 @@ def reset_data(request):
         generate_year_data()
         return redirect('entry_form')
     return render(request, 'tracker/reset_confirm.html')
+
+# Add these new imports
+from django.db.models import Q
+
+# Add these new view functions to views.py
+
+@csrf_exempt
+def update_account(request, entry_id):
+    """AJAX endpoint to update account details (bank name and account name)"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            entry = get_object_or_404(MonthlyEntry, id=entry_id)
+            
+            # Get current details for comparison
+            old_bank_name = entry.bank_name
+            old_account_name = entry.account_name
+            
+            # Update the entry with new details
+            entry.bank_name = data.get('bank_name', old_bank_name)
+            entry.account_name = data.get('account_name', old_account_name)
+            entry.save()
+            
+            # Get other entries for the same account across all months
+            if data.get('update_all_months', True):
+                # Find all entries with the same bank and account name across all months
+                similar_entries = MonthlyEntry.objects.filter(
+                    bank_name=old_bank_name,
+                    account_name=old_account_name
+                ).exclude(id=entry_id)
+                
+                # Update all similar entries
+                similar_entries.update(
+                    bank_name=entry.bank_name,
+                    account_name=entry.account_name
+                )
+            
+            return JsonResponse({
+                'success': True,
+                'id': entry.id,
+                'bank_name': entry.bank_name,
+                'account_name': entry.account_name
+            })
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+@csrf_exempt
+def delete_account(request, entry_id):
+    """AJAX endpoint to delete an account"""
+    if request.method == 'POST':
+        try:
+            entry = get_object_or_404(MonthlyEntry, id=entry_id)
+            
+            # Store details for finding similar entries
+            bank_name = entry.bank_name
+            account_name = entry.account_name
+            month_name = calendar.month_name[entry.date.month] + " " + str(entry.date.year)
+            
+            # Delete the entry
+            entry.delete()
+            
+            # Find and delete all similar entries across all months if requested
+            if request.GET.get('all_months', 'true').lower() == 'true':
+                MonthlyEntry.objects.filter(
+                    bank_name=bank_name,
+                    account_name=account_name
+                ).delete()
+            
+            # Recalculate totals for the affected month
+            month_entries = MonthlyEntry.objects.filter(
+                date__year=entry.date.year,
+                date__month=entry.date.month
+            )
+            
+            current_total = sum(e.amount for e in month_entries.filter(account_type='Current'))
+            savings_total = sum(e.amount for e in month_entries.filter(account_type='Savings'))
+            lending_total = sum(e.amount for e in month_entries.filter(account_type='Lending'))
+            deposits_total = sum(e.amount for e in month_entries.filter(account_type='Deposits'))
+            pensions_total = sum(e.amount for e in month_entries.filter(account_type='Pensions'))
+            credit_cards_total = sum(e.amount for e in month_entries.filter(account_type='Credit Cards'))
+            
+            # Update grand total to include all account types
+            grand_total = (current_total + savings_total + lending_total + 
+                         deposits_total + pensions_total - credit_cards_total)
+            
+            return JsonResponse({
+                'success': True,
+                'month': month_name,
+                'totals': {
+                    'current_total': float(current_total),
+                    'savings_total': float(savings_total),
+                    'lending_total': float(lending_total),
+                    'deposits_total': float(deposits_total),
+                    'pensions_total': float(pensions_total),
+                    'credit_cards_total': float(credit_cards_total),
+                    'grand_total': float(grand_total)
+                }
+            })
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request'})

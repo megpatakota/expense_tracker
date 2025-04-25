@@ -293,3 +293,139 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 });
+
+// Add these safer chart update functions to your script.js or chart.js file
+
+/**
+ * Safely updates totals for a month
+ * @param {string} monthName - Name of the month
+ * @param {number} currentTotal - Total for current accounts
+ * @param {number} savingsTotal - Total for savings accounts
+ * @param {number} lendingTotal - Total for lending accounts
+ * @param {number} depositsTotal - Total for deposits
+ * @param {number} pensionsTotal - Total for pensions
+ * @param {number} creditCardsTotal - Total for credit cards
+ * @param {number} grandTotal - Grand total across all accounts
+ */
+function updateTotals(monthName, currentTotal, savingsTotal, lendingTotal, depositsTotal, pensionsTotal, creditCardsTotal, grandTotal) {
+    try {
+        // Update all instances of the totals (both in detail view and hidden containers)
+        document.querySelectorAll(`.current-total[data-month="${monthName}"]`).forEach(el => {
+            if (el) el.textContent = '£' + currentTotal.toFixed(2);
+        });
+
+        document.querySelectorAll(`.savings-total[data-month="${monthName}"]`).forEach(el => {
+            if (el) el.textContent = '£' + savingsTotal.toFixed(2);
+        });
+
+        document.querySelectorAll(`.lending-total[data-month="${monthName}"]`).forEach(el => {
+            if (el) el.textContent = '£' + lendingTotal.toFixed(2);
+        });
+
+        document.querySelectorAll(`.deposits-total[data-month="${monthName}"]`).forEach(el => {
+            if (el) el.textContent = '£' + depositsTotal.toFixed(2);
+        });
+
+        document.querySelectorAll(`.pensions-total[data-month="${monthName}"]`).forEach(el => {
+            if (el) el.textContent = '£' + pensionsTotal.toFixed(2);
+        });
+
+        document.querySelectorAll(`.credit-cards-total[data-month="${monthName}"]`).forEach(el => {
+            if (el) el.textContent = '£' + creditCardsTotal.toFixed(2);
+        });
+
+        document.querySelectorAll(`.grand-total[data-month="${monthName}"]`).forEach(el => {
+            if (el) el.textContent = '£' + grandTotal.toFixed(2);
+        });
+
+        console.log('Successfully updated totals for', monthName);
+    } catch (error) {
+        console.error('Error updating totals:', error);
+    }
+}
+
+/**
+ * Safely updates the month card with new totals
+ * @param {string} monthName - Name of the month
+ * @param {number} currentTotal - Total for current accounts
+ * @param {number} savingsTotal - Total for savings accounts
+ * @param {number} lendingTotal - Total for lending accounts
+ * @param {number} depositsTotal - Total for deposits
+ * @param {number} pensionsTotal - Total for pensions
+ * @param {number} creditCardsTotal - Total for credit cards
+ * @param {number} grandTotal - Grand total across all accounts
+ */
+function updateMonthCard(monthName, currentTotal, savingsTotal, lendingTotal, depositsTotal, pensionsTotal, creditCardsTotal, grandTotal) {
+    try {
+        const monthCard = document.querySelector(`.month-card[data-month="${monthName}"]`);
+        if (monthCard) {
+            const currentElement = monthCard.querySelector('div:nth-child(2) span:last-child');
+            const savingsElement = monthCard.querySelector('div:nth-child(3) span:last-child');
+            const lendingElement = monthCard.querySelector('div:nth-child(4) span:last-child');
+            const depositsElement = monthCard.querySelector('div:nth-child(5) span:last-child');
+            const pensionsElement = monthCard.querySelector('div:nth-child(6) span:last-child');
+            const creditCardsElement = monthCard.querySelector('div:nth-child(7) span:last-child');
+            const totalElement = monthCard.querySelector('div:nth-child(8) span:last-child');
+
+            if (currentElement) currentElement.textContent = '£' + currentTotal.toFixed(2);
+            if (savingsElement) savingsElement.textContent = '£' + savingsTotal.toFixed(2);
+            if (lendingElement) lendingElement.textContent = '£' + lendingTotal.toFixed(2);
+            if (depositsElement) depositsElement.textContent = '£' + depositsTotal.toFixed(2);
+            if (pensionsElement) pensionsElement.textContent = '£' + pensionsTotal.toFixed(2);
+            if (creditCardsElement) creditCardsElement.textContent = '£' + creditCardsTotal.toFixed(2);
+            if (totalElement) totalElement.textContent = '£' + grandTotal.toFixed(2);
+            
+            console.log('Successfully updated month card for', monthName);
+        } else {
+            console.log('Month card not found for', monthName);
+        }
+    } catch (error) {
+        console.error('Error updating month card:', error);
+    }
+}
+
+/**
+ * Safely updates the chart with new totals
+ * @param {string} monthName - Name of the month
+ * @param {number} currentTotal - Total for current accounts
+ * @param {number} savingsTotal - Total for savings accounts
+ * @param {number} lendingTotal - Total for lending accounts
+ * @param {number} depositsTotal - Total for deposits
+ * @param {number} pensionsTotal - Total for pensions
+ * @param {number} creditCardsTotal - Total for credit cards
+ * @param {number} grandTotal - Grand total across all accounts
+ */
+function updateChart(monthName, currentTotal, savingsTotal, lendingTotal, depositsTotal, pensionsTotal, creditCardsTotal, grandTotal) {
+    try {
+        // Ensure chart and data are defined
+        if (typeof financialChart === 'undefined' || typeof chartData === 'undefined') {
+            console.log('Chart or chart data not found, skipping chart update');
+            return;
+        }
+
+        const monthIndex = chartData.months.indexOf(monthName);
+        if (monthIndex !== -1) {
+            // Update chart datasets for this month
+            financialChart.data.datasets[0].data[monthIndex] = grandTotal;
+            financialChart.data.datasets[1].data[monthIndex] = currentTotal;
+            financialChart.data.datasets[2].data[monthIndex] = savingsTotal;
+            financialChart.data.datasets[3].data[monthIndex] = lendingTotal;
+            financialChart.data.datasets[4].data[monthIndex] = depositsTotal;
+            financialChart.data.datasets[5].data[monthIndex] = pensionsTotal;
+            financialChart.data.datasets[6].data[monthIndex] = creditCardsTotal;
+            
+            // Update net worth if present
+            if (financialChart.data.datasets.length > 7) {
+                financialChart.data.datasets[7].data[monthIndex] = currentTotal + savingsTotal + lendingTotal + depositsTotal + pensionsTotal - creditCardsTotal;
+            }
+            
+            // Update the chart
+            financialChart.update();
+            console.log('Successfully updated chart for', monthName);
+        } else {
+            console.log('Month not found in chart data:', monthName);
+        }
+    } catch (error) {
+        console.error('Error updating chart:', error);
+    }
+}
