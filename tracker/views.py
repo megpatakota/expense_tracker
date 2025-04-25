@@ -1,14 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from .models import MonthlyEntry
-from django import forms
-from datetime import date, timedelta, datetime
+from datetime import date
 import calendar
 from decimal import Decimal
 from django.views.decorators.csrf import csrf_exempt
 import json
-from django.core.serializers.json import DjangoJSONEncoder
-import random
 
 def generate_year_data():
     """Generate test data for all months of 2025 if they don't exist"""

@@ -1,5 +1,7 @@
-// Wait for DOM to be fully loaded
+// Enhanced chart.js implementation with simple pie chart
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM loaded, starting enhanced chart initialization");
+    
     // ----- Chart Data -----
     const chartData = {
         months: [],
@@ -14,18 +16,25 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Make sure the container is visible temporarily while we collect data
     const dataContainer = document.getElementById('allMonthsContainer');
-    const wasHidden = dataContainer?.classList.contains('hidden');
     
-    if (dataContainer && wasHidden) {
-        dataContainer.classList.remove('hidden');
-    }
-    
-    // Now collect the data
-    const monthSections = document.querySelectorAll('.month-data-container');
-    
-    if (monthSections.length > 0) {
+    if (!dataContainer) {
+        console.error("Could not find allMonthsContainer!");
+    } else {
+        const wasHidden = dataContainer.classList.contains('hidden');
+        
+        if (wasHidden) {
+            console.log("Data container was hidden, making it temporarily visible");
+            dataContainer.classList.remove('hidden');
+        }
+        
+        // Now collect the data
+        const monthSections = document.querySelectorAll('.month-data-container');
+        console.log(`Found ${monthSections.length} month sections`);
+        
         monthSections.forEach(function (monthSection) {
             const monthName = monthSection.getAttribute('data-month');
+            
+            // Capture all account type totals
             const currentTotal = parseFloat(monthSection.querySelector('.current-total')?.textContent?.replace('£', '')?.trim() || 0);
             const savingsTotal = parseFloat(monthSection.querySelector('.savings-total')?.textContent?.replace('£', '')?.trim() || 0);
             const lendingTotal = parseFloat(monthSection.querySelector('.lending-total')?.textContent?.replace('£', '')?.trim() || 0);
@@ -42,17 +51,23 @@ document.addEventListener('DOMContentLoaded', function() {
             chartData.pensionsTotals.unshift(pensionsTotal);
             chartData.creditCardTotals.unshift(creditCardTotal);
             chartData.grandTotals.unshift(grandTotal);
+            
+            console.log(`Month: ${monthName}, Current: ${currentTotal}, Savings: ${savingsTotal}, Credit Cards: ${creditCardTotal}, Grand Total: ${grandTotal}`);
         });
-    } 
-    
-    // Hide the container again if it was hidden before
-    if (dataContainer && wasHidden) {
-        dataContainer.classList.add('hidden');
+        
+        // Hide the container again if it was hidden before
+        if (wasHidden) {
+            dataContainer.classList.add('hidden');
+        }
     }
     
-    // If no data found, use demo data
+    console.log("Complete chart data:", chartData);
+    
+    // Check if we have data
     if (chartData.months.length === 0) {
-        // Demo data
+        console.log("No data found in DOM, using demo data instead");
+        
+        // Use demo data if no data is found
         chartData.months = ["January", "February", "March", "April", "May", "June"];
         chartData.currentTotals = [1000, 1200, 1100, 1300, 1250, 1400];
         chartData.savingsTotals = [5000, 5100, 5200, 5300, 5400, 5500];
@@ -63,25 +78,156 @@ document.addEventListener('DOMContentLoaded', function() {
         chartData.grandTotals = [35500, 35800, 35950, 36400, 36600, 37000];
     }
     
-    // ----- Pie Chart -----
-    // Calculate total assets
+    // Initialize line Chart with interactive legend
+    const ctx = document.getElementById('financialSummaryChart');
+    if (ctx) {
+        console.log("Creating enhanced line chart");
+        
+        // Define datasets
+        const lineChartDatasets = [
+            {
+                label: 'Current Accounts',
+                data: chartData.currentTotals,
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.1
+            },
+            {
+                label: 'Savings Accounts',
+                data: chartData.savingsTotals,
+                backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                borderColor: 'rgba(153, 102, 255, 1)',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.1
+            },
+            {
+                label: 'Lending Accounts',
+                data: chartData.lendingTotals,
+                backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                borderColor: 'rgba(255, 159, 64, 1)',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.1
+            },
+            {
+                label: 'Deposits',
+                data: chartData.depositsTotals,
+                backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                borderColor: 'rgba(255, 206, 86, 1)',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.1
+            },
+            {
+                label: 'Pensions',
+                data: chartData.pensionsTotals,
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.1
+            },
+            {
+                label: 'Credit Cards',
+                data: chartData.creditCardTotals,
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.1
+            }
+        ];
+        
+        const financialChart = new Chart(ctx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: chartData.months,
+                datasets: lineChartDatasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: 'Amount (£)',
+                            font: {
+                                weight: 'bold'
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(200, 200, 200, 0.2)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(200, 200, 200, 0.2)'
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                return context.dataset.label + ': £' + context.raw.toFixed(2);
+                            }
+                        }
+                    },
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            padding: 16,
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            font: {
+                                size: 11
+                            }
+                        },
+                        // Enhanced legend behavior - click to toggle visibility
+                        onClick: function(e, legendItem, legend) {
+                            const index = legendItem.datasetIndex;
+                            const ci = legend.chart;
+                            const meta = ci.getDatasetMeta(index);
+                            
+                            // Toggle the hidden property
+                            meta.hidden = meta.hidden === null ? !ci.data.datasets[index].hidden : null;
+                            ci.update();
+                        }
+                    }
+                }
+            }
+        });
+    } else {
+        console.error("Could not find line chart canvas element");
+    }
+
+    // ----- Pie Chart with Labels - Assets and Liabilities Only -----
+    // Make sure to use the data from the latest month
+    const latestMonth = 0; // Index 0 since we unshifted the data
+    
+    // Calculate total assets 
     const totalAssets = (
-        (chartData.currentTotals[0] || 0) + 
-        (chartData.savingsTotals[0] || 0) + 
-        (chartData.depositsTotals[0] || 0) + 
-        (chartData.pensionsTotals[0] || 0)
+        (chartData.currentTotals[latestMonth] || 0) + 
+        (chartData.savingsTotals[latestMonth] || 0) + 
+        (chartData.depositsTotals[latestMonth] || 0) + 
+        (chartData.pensionsTotals[latestMonth] || 0)
     );
     
-    // Calculate total liabilities
-    const totalLiabilities = Math.abs(
-        (chartData.creditCardTotals[0] || 0) + 
-        (chartData.lendingTotals[0] || 0)
-    );
+    // Calculate total liabilities (use absolute value)
+    const totalLiabilities = Math.abs(chartData.creditCardTotals[latestMonth] || 0);
     
-    // Ensure minimum values for visualization
-    const minAssets = Math.max(totalAssets, 1000);
-    const minLiabilities = Math.max(totalLiabilities, 100);
+    console.log("Pie chart data - Assets:", totalAssets, "Liabilities:", totalLiabilities);
     
+    // Force minimum values to ensure pie chart is visible even with no data
+    const minAssets = totalAssets > 0 ? totalAssets : 1000;
+    const minLiabilities = totalLiabilities > 0 ? totalLiabilities : 100;
+    
+    // Simple assets/liabilities pie chart data
     const pieChartData = {
         labels: ['Total Assets', 'Total Liabilities'],
         datasets: [{
@@ -90,8 +236,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 minLiabilities
             ],
             backgroundColor: [
-                'rgba(75, 192, 192, 0.2)', // Total Assets
-                'rgba(255, 99, 132, 0.2)' // Total Liabilities
+                'rgba(75, 192, 192, 0.7)', // Total Assets
+                'rgba(255, 99, 132, 0.7)' // Total Liabilities
             ],
             borderColor: [
                 'rgba(75, 192, 192, 1)', // Total Assets
@@ -101,29 +247,75 @@ document.addEventListener('DOMContentLoaded', function() {
         }]
     };
     
+    // Custom plugin for labels inside pie chart
+    const pieChartLabelsPlugin = {
+        id: 'pieChartLabels',
+        beforeDraw: function(chart) {
+            const width = chart.width;
+            const height = chart.height;
+            const ctx = chart.ctx;
+            ctx.restore();
+            
+            // Calculate percentages
+            const total = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+            
+            // Font settings
+            const fontSize = (height / 114).toFixed(2);
+            ctx.font = fontSize + 'em sans-serif';
+            ctx.textBaseline = 'middle';
+            
+            // Draw each slice's text
+            const meta = chart.getDatasetMeta(0);
+            meta.data.forEach(element => {
+                const dataIndex = element.index;
+                const value = chart.data.datasets[0].data[dataIndex];
+                
+                // Only draw text if slice is large enough (more than 5%)
+                if (value / total > 0.05) {
+                    // Calculate percentage
+                    const percentage = ((value / total) * 100).toFixed(1) + '%';
+                    
+                    // Format monetary value
+                    const monetary = '£' + value.toLocaleString();
+                    
+                    // Get position
+                    const center = element.getCenterPoint();
+                    
+                    // Draw text
+                    ctx.fillStyle = '#fff';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(percentage, center.x, center.y - (fontSize * 8));
+                    ctx.fillText(monetary, center.x, center.y + (fontSize * 8));
+                }
+            });
+            
+            ctx.save();
+        }
+    };
+    
     const pieCtx = document.getElementById('assetsLiabilitiesPieChart');
     if (pieCtx) {
+        console.log("Creating enhanced pie chart");
+        
+        // Use the simple assets/liabilities view
         const pieChart = new Chart(pieCtx.getContext('2d'), {
             type: 'pie',
+            plugins: [pieChartLabelsPlugin],
             data: pieChartData,
             options: {
                 responsive: true,
-                maintainAspectRatio: true,
-                layout: {
-                    padding: {
-                        bottom: 10
-                    }
-                },
+                maintainAspectRatio: false,
                 plugins: {
                     legend: {
                         position: 'top',
-                        align: 'center',
+                        display: true,
                         labels: {
-                            boxWidth: 12,
+                            padding: 16,
+                            usePointStyle: true,
+                            pointStyle: 'circle',
                             font: {
                                 size: 11
-                            },
-                            padding: 8
+                            }
                         }
                     },
                     tooltip: {
@@ -131,143 +323,22 @@ document.addEventListener('DOMContentLoaded', function() {
                             label: function (context) {
                                 const label = context.label || '';
                                 const value = context.raw;
-                                const percentage = Math.round((value / (minAssets + minLiabilities)) * 100);
+                                const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
                                 return `${label}: £${value.toLocaleString()} (${percentage}%)`;
-                            }
-                        }
-                    },
-                    // Display values on the pie chart segments
-                    datalabels: {
-                        formatter: (value, ctx) => {
-                            const sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                            const percentage = Math.round((value / sum) * 100) + '%';
-                            return percentage;
-                        },
-                        color: '#000',
-                        font: {
-                            weight: 'bold',
-                            size: 12
-                        }
-                    }
-                }
-            }
-        });
-    }
-    
-    // Initialize line Chart
-    const ctx = document.getElementById('financialSummaryChart');
-    if (ctx) {
-        const financialChart = new Chart(ctx.getContext('2d'), {
-            type: 'line',
-            data: {
-                labels: chartData.months,
-                datasets: [
-                    {
-                        label: 'Current Accounts',
-                        data: chartData.currentTotals,
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1,
-                        fill: false,
-                        tension: 0.1
-                    },
-                    {
-                        label: 'Savings Accounts',
-                        data: chartData.savingsTotals,
-                        backgroundColor: 'rgba(153, 102, 255, 0.2)',
-                        borderColor: 'rgba(153, 102, 255, 1)',
-                        borderWidth: 1,
-                        fill: false,
-                        tension: 0.1
-                    },
-                    {
-                        label: 'Lending Accounts',
-                        data: chartData.lendingTotals,
-                        backgroundColor: 'rgba(255, 159, 64, 0.2)',
-                        borderColor: 'rgba(255, 159, 64, 1)',
-                        borderWidth: 1,
-                        fill: false,
-                        tension: 0.1
-                    },
-                    {
-                        label: 'Deposits',
-                        data: chartData.depositsTotals,
-                        backgroundColor: 'rgba(255, 206, 86, 0.2)',
-                        borderColor: 'rgba(255, 206, 86, 1)',
-                        borderWidth: 1,
-                        fill: false,
-                        tension: 0.1
-                    },
-                    {
-                        label: 'Pensions',
-                        data: chartData.pensionsTotals,
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1,
-                        fill: false,
-                        tension: 0.1
-                    },
-                    {
-                        label: 'Credit Cards',
-                        data: chartData.creditCardTotals,
-                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                        borderWidth: 1,
-                        fill: false,
-                        tension: 0.1
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                scales: {
-                    x: {
-                        ticks: {
-                            font: {
-                                size: 10
-                            },
-                            maxRotation: 45,
-                            minRotation: 45
-                        }
-                    },
-                    y: {
-                        beginAtZero: false,
-                        title: {
-                            display: true,
-                            text: 'Amount (£)',
-                            font: {
-                                size: 11
-                            }
-                        },
-                        ticks: {
-                            font: {
-                                size: 10
                             }
                         }
                     }
                 },
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        align: 'center',
-                        labels: {
-                            boxWidth: 12,
-                            font: {
-                                size: 11
-                            },
-                            padding: 8
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function (context) {
-                                return context.dataset.label + ': £' + context.raw.toLocaleString();
-                            }
-                        }
-                    }
+                animation: {
+                    animateRotate: true,
+                    animateScale: true
                 }
             }
         });
+        
+        console.log("Pie chart created successfully");
+    } else {
+        console.error("Could not find pie chart canvas element");
     }
 });
