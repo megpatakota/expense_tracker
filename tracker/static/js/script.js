@@ -1,5 +1,11 @@
 console.log('Script.js loaded');
 
+// ----- load styles.css -----
+const link = document.createElement('link');
+link.rel = 'stylesheet';
+link.type = 'text/css';
+link.href = '/static/css/styles.css';
+
 document.addEventListener('DOMContentLoaded', function () {
     console.log('DOM Content Loaded');
     // ----- Chart Data -----
@@ -14,18 +20,23 @@ document.addEventListener('DOMContentLoaded', function () {
         grandTotals: []
     };
 
-    // Collect data for chart
     document.querySelectorAll('.month-data-container').forEach(function (monthSection) {
         const monthName = monthSection.getAttribute('data-month');
         const currentTotal = parseFloat(monthSection.querySelector('.current-total')?.textContent.replace('£', '') || 0);
         const savingsTotal = parseFloat(monthSection.querySelector('.savings-total')?.textContent.replace('£', '') || 0);
         const lendingTotal = parseFloat(monthSection.querySelector('.lending-total')?.textContent.replace('£', '') || 0);
+        const depositsTotal = parseFloat(monthSection.querySelector('.deposits-total')?.textContent.replace('£', '') || 0);
+        const pensionsTotal = parseFloat(monthSection.querySelector('.pensions-total')?.textContent.replace('£', '') || 0);
+        const creditCardTotal = parseFloat(monthSection.querySelector('.credit-cards-total')?.textContent.replace('£', '') || 0);
         const grandTotal = parseFloat(monthSection.querySelector('.grand-total')?.textContent.replace('£', '') || 0);
-
+    
         chartData.months.unshift(monthName);
         chartData.currentTotals.unshift(currentTotal);
         chartData.savingsTotals.unshift(savingsTotal);
         chartData.lendingTotals.unshift(lendingTotal);
+        chartData.depositsTotals.unshift(depositsTotal);
+        chartData.pensionsTotals.unshift(pensionsTotal);
+        chartData.creditCardTotals.unshift(creditCardTotal);
         chartData.grandTotals.unshift(grandTotal);
     });
 
