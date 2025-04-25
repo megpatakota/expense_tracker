@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Define datasets
         const lineChartDatasets = [
             {
-                label: 'Current Accounts',
+                label: 'Current',
                 data: chartData.currentTotals,
                 backgroundColor: 'rgba(54, 162, 235, 0.2)',
                 borderColor: 'rgba(54, 162, 235, 1)',
@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 tension: 0.1
             },
             {
-                label: 'Savings Accounts',
+                label: 'Savings',
                 data: chartData.savingsTotals,
                 backgroundColor: 'rgba(153, 102, 255, 0.2)',
                 borderColor: 'rgba(153, 102, 255, 1)',
@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 tension: 0.1
             },
             {
-                label: 'Lending Accounts',
+                label: 'Lending',
                 data: chartData.lendingTotals,
                 backgroundColor: 'rgba(255, 159, 64, 0.2)',
                 borderColor: 'rgba(255, 159, 64, 1)',
