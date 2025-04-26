@@ -9,6 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     {% load static %}
+    {% load account_filters %}
 
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <link rel="stylesheet" href="{% static 'css/account-management.css' %}">
@@ -31,9 +32,35 @@
         </div>
     </header>
 
+<!-- Balance as of Today container -->
+<div class="container mx-auto px-4 pt-24 pb-6">
+    <div class="bg-white rounded-2xl shadow-xl p-8 mb-6 flex flex-col md:flex-row items-center justify-between gap-6">
+        <!-- Left side with icon and titles -->
+        <div class="flex items-center space-x-4">
+            <div class="bg-white p-3 rounded-full shadow-md">
+                <svg class="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l2 2"/>
+                </svg>
+            </div>
+            <div>
+                <h2 class="text-lg font-semibold text-gray-700 mb-1">Balance as of Today</h2>
+                <h3 class="text-3xl md:text-4xl font-extrabold text-gray-900">Total Assets</h3>
+            </div>
+        </div>
+        
+        <!-- Right side with amount -->
+        <div class="flex flex-col items-end">
+            <span class="text-4xl md:text-5xl font-extrabold text-green-600 drop-shadow-lg">
+                £{{ total_assets|floatformat:2 }}
+            </span>
+            <span class="text-sm text-gray-500 mt-1">Updated now</span>
+        </div>
+    </div>
+</div>
+        
 
-    {% load account_filters %}
-    <div class="container mx-auto px-4 py-20">
+    <div class="container mx-auto px-4 py-2">
         <!-- Enhanced Charts Section with Improved Layout -->
         <div class="bg-white rounded-lg shadow-md p-5 mb-8 py-15">
             <div class="flex flex-col md:flex-row md:flex-wrap">

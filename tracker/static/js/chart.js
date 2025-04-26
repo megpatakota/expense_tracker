@@ -66,18 +66,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check if we have data
     if (chartData.months.length === 0) {
         console.log("No data found in DOM, using demo data instead");
-        
-        // Use demo data if no data is found
-        chartData.months = ["January", "February", "March", "April", "May", "June"];
-        chartData.currentTotals = [1000, 1200, 1100, 1300, 1250, 1400];
-        chartData.savingsTotals = [5000, 5100, 5200, 5300, 5400, 5500];
-        chartData.lendingTotals = [0, 0, 0, 0, 0, 0];
-        chartData.depositsTotals = [10000, 10000, 10000, 10000, 10000, 10000];
-        chartData.pensionsTotals = [20000, 20100, 20200, 20300, 20400, 20500];
-        chartData.creditCardTotals = [-500, -600, -550, -500, -450, -400];
-        chartData.grandTotals = [35500, 35800, 35950, 36400, 36600, 37000];
     }
     
+
     // Initialize line Chart with interactive legend
     const ctx = document.getElementById('financialSummaryChart');
     if (ctx) {
@@ -215,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
         (chartData.currentTotals[latestMonth] || 0) + 
         (chartData.savingsTotals[latestMonth] || 0) + 
         (chartData.depositsTotals[latestMonth] || 0) + 
-        (chartData.pensionsTotals[latestMonth] || 0)
+        (chartData.lendingTotals[latestMonth] || 0)
     );
     
     // Calculate total liabilities (use absolute value)

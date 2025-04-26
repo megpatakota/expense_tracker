@@ -36,12 +36,18 @@ def filter_by_type(entries, account_type):
         return []
     
 @register.filter
-def calculate_total_assets(month_data):
-    current = sum(entry.amount for entry in month_data.get('current', []))
-    savings = sum(entry.amount for entry in month_data.get('savings', []))
-    lending = sum(entry.amount for entry in month_data.get('lending', []))
-    deposits = sum(entry.amount for entry in month_data.get('deposits', []))
-    pensions = sum(entry.amount for entry in month_data.get('pensions', []))
-    credit_cards = sum(entry.amount for entry in month_data.get('credit_cards', []))
-    
-    return current + savings + lending + deposits + pensions - credit_cards
+def calculate_total_assets(value):
+    if not value:
+        return "0.00"
+    try:
+        current = sum(float(entry.amount) for entry in value.get('current', []))
+        savings = sum(float(entry.amount) for entry in value.get('savings', []))
+        lending = sum(float(entry.amount) for entry in value.get('lending', []))
+        deposits = sum(float(entry.amount) for entry in value.get('deposits', []))
+        pensions = sum(float(entry.amount) for entry in value.get('pensions', []))
+        credit_cards = sum(float(entry.amount) for entry in value.get('credit_cards', []))
+        
+        total = current + savings + lending + deposits + pensions - credit_cards
+        return f"{total:.2f}"
+    except (AttributeError, TypeError):
+        return "0.00"

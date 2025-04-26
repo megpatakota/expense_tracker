@@ -191,9 +191,27 @@ def entry_form(request):
         reverse=True
     )
     
+    # Get current month's data
+    current_month_key = get_month_key(today)
+    current_month_data = next(
+        (data for _, data in current_year_months if get_month_key(data['month_date']) == current_month_key),
+        None
+    )
+
+    # Calculate total assets for display
+    total_assets = 0
+    if current_month_data:
+        entries = MonthlyEntry.objects.filter(
+            date__year=today.year,
+            date__month=today.month
+        )
+        total_assets = calculate_totals(entries)['grand_total']
+
     return render(request, 'tracker/entry_form.html', {
         'entries_by_month': sorted_months,
         'current_year_months': current_year_months,
+        'total_assets': total_assets,
+        'month_data': current_month_data,
     })
 
 
