@@ -1,93 +1,41 @@
-// add-account.js - With live UI update after adding account
+// add-account.js - With full page refresh and preserved detail view state
 
 document.addEventListener('DOMContentLoaded', () => {
   console.log('Add Account script loaded');
-
-  // Make setupTabs function available globally if it's not already
-  if (typeof window.setupTabs !== 'function') {
-    window.setupTabs = function() {
-      const tabButtons = document.querySelectorAll('.account-tab-btn');
-      const monthDetailContent = document.getElementById('monthDetailContent');
-
-      function switchTab(targetType) {
-        // Update tab buttons
-        tabButtons.forEach(btn => {
-          if (btn.dataset.type === targetType) {
-            btn.classList.add('active', 'border-blue-500', 'text-blue-600');
-            btn.classList.remove('text-gray-500');
-          } else {
-            btn.classList.remove('active', 'border-blue-500', 'text-blue-600');
-            btn.classList.add('text-gray-500');
-          }
-        });
-
-        // Show the content for the selected tab
-        const allContents = monthDetailContent.querySelectorAll('.account-tab-content');
-        allContents.forEach(content => {
-          if (content.dataset.type === targetType) {
-            content.classList.remove('hidden');
-          } else {
-            content.classList.add('hidden');
-          }
-        });
-      }
-
-      // Add click handlers to tab buttons
-      tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-          const targetType = button.dataset.type;
-          switchTab(targetType);
-        });
-      });
-
-      // Initialize with first tab active
-      switchTab('current');
-    };
-  }
   
-  // Make setupEditableAmounts available globally if it's not already
-  if (typeof window.setupEditableAmounts !== 'function') {
-    window.setupEditableAmounts = function() {
-      document.querySelectorAll('.editable-amount').forEach(function (element) {
-        element.addEventListener('click', function () {
-          const id = this.getAttribute('data-id');
-          const currentAmount = this.getAttribute('data-amount');
-          const accountType = this.getAttribute('data-type');
-          const monthName = this.getAttribute('data-month');
-
-          // Create input field
-          const input = document.createElement('input');
-          input.type = 'number';
-          input.step = '0.01';
-          input.value = currentAmount;
-          input.classList.add('border', 'p-1', 'rounded', 'amount-input');
-
-          // Replace the span with input
-          const originalContent = this.innerHTML;
-          this.innerHTML = '';
-          this.appendChild(input);
-          input.focus();
-
-          // Handle input blur (save)
-          input.addEventListener('blur', function () {
-            if (typeof window.saveAmount === 'function') {
-              window.saveAmount(id, this.value, originalContent, element, accountType, monthName);
-            } else {
-              // Fallback if saveAmount is not defined
-              element.innerHTML = originalContent;
-              console.error('saveAmount function not found');
-            }
-          });
-
-          // Handle Enter key
-          input.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-              this.blur();
-            }
-          });
-        });
-      });
-    };
+  // Check URL params for "showDetail" which indicates we should re-open the detail view
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has('showDetail')) {
+    const monthName = urlParams.get('month');
+    const accountType = urlParams.get('accountType');
+    
+    // Wait a bit for everything to load
+    setTimeout(() => {
+      // Find and click the edit button for this month
+      const editBtn = document.querySelector(`.edit-month-btn[data-month-full="${monthName}"]`);
+      if (editBtn) {
+        editBtn.click();
+        
+        // Wait for detail view to open, then select the correct tab
+        setTimeout(() => {
+          // Convert account type to the format used in data-type
+          const accountTypeKey = accountType.toLowerCase().replace(/\s+/g, '-');
+          const tabBtn = document.querySelector(`.account-tab-btn[data-type="${accountTypeKey}"]`);
+          if (tabBtn) {
+            tabBtn.click();
+          }
+          
+          // Scroll to the detail view
+          const detailView = document.getElementById('monthDetailView');
+          if (detailView) {
+            detailView.scrollIntoView({ behavior: 'smooth' });
+          }
+          
+          // Clear URL parameters to avoid reopening on future refreshes
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }, 300);
+      }
+    }, 300);
   }
   
   // Set up button, modal and form-handling for adding accounts
@@ -335,16 +283,18 @@ function createAddAccountModal() {
         return response;
       })
       .then(() => {
-        // Hide modal and reset form
-        modal.classList.add('hidden');
-        modal.style.display = 'none';
-        form.reset();
-        
-        // Show success notification
-        showNotification(`${accountType} account added successfully!`, 'success');
-        
-        // Refresh the detail view to show the new account
-        refreshDetailView(monthName, accountType);
+        // Create a full-page overlay with a refresh message
+        showRefreshingOverlay(() => {
+          // After showing the overlay, redirect with query parameters to reopen the detail view
+          const url = new URL(window.location.href);
+          url.searchParams.set('showDetail', 'true');
+          url.searchParams.set('month', monthName);
+          url.searchParams.set('accountType', accountType);
+          url.searchParams.set('t', Date.now()); // Add timestamp to prevent caching
+          
+          // Navigate to the URL with parameters
+          window.location.href = url.toString();
+        });
       })
       .catch(err => {
         console.error('Error adding account:', err);
@@ -360,76 +310,43 @@ function createAddAccountModal() {
   return modal;
 }
 
-// Function to refresh the detail view and show the newly added account
-function refreshDetailView(monthName, selectedAccountType) {
-  const monthDetailView = document.getElementById('monthDetailView');
-  const monthDetailContent = document.getElementById('monthDetailContent');
-  
-  if (!monthDetailView || !monthDetailContent) {
-    console.error('Detail view elements not found');
-    return;
+// Function to show a full-page refreshing overlay
+function showRefreshingOverlay(callback) {
+  // Hide the modal first
+  const modal = document.getElementById('addAccountModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
   }
   
-  // Show a loading indicator
-  monthDetailContent.innerHTML = `
-    <div class="flex items-center justify-center p-8">
-      <div class="loading-spinner mr-3"></div>
-      <span>Refreshing accounts...</span>
+  // Create the overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50';
+  overlay.style.transition = 'opacity 0.5s';
+  overlay.style.opacity = '0';
+  
+  overlay.innerHTML = `
+    <div class="text-center p-6 bg-white rounded-lg shadow-lg">
+      <div class="loading-spinner mx-auto mb-4" style="width: 40px; height: 40px; border-width: 4px;"></div>
+      <h2 class="text-xl font-semibold mb-2">Refreshing Accounts...</h2>
+      <p class="text-gray-600">Your new account is being added.</p>
     </div>
   `;
   
-  // Keep the details view open
-  monthDetailView.classList.remove('hidden');
+  document.body.appendChild(overlay);
   
-  // Find the month data container for this month
-  const monthContainer = document.querySelector(`.month-data-container[data-month="${monthName}"]`);
-  if (!monthContainer) {
-    console.error('Month container not found for', monthName);
-    // If we can't find the month container, just reload the page
-    location.reload();
-    return;
-  }
+  // Force reflow to enable transition
+  overlay.offsetHeight;
   
-  // Get all tab contents from the source (which has the freshly added account)
-  const tabContents = monthContainer.querySelectorAll('.account-tab-content');
+  // Fade in
+  overlay.style.opacity = '1';
   
-  // Clear existing content
-  monthDetailContent.innerHTML = '';
-  
-  // Clone each tab content into the detail view
-  tabContents.forEach(content => {
-    const clone = content.cloneNode(true);
-    monthDetailContent.appendChild(clone);
-  });
-  
-  // Set up tabs again
-  if (typeof window.setupTabs === 'function') {
-    window.setupTabs();
-  }
-  
-  // Set up editable amounts
-  if (typeof window.setupEditableAmounts === 'function') {
-    window.setupEditableAmounts();
-  }
-  
-  // Re-attach account management handlers if they exist
-  if (typeof window.setupAccountEditButtons === 'function') {
-    window.setupAccountEditButtons();
-  }
-  
-  if (typeof window.setupDeleteAccountButtons === 'function') {
-    window.setupDeleteAccountButtons();
-  }
-  
-  // Switch to the tab for the type of account that was just added
-  const accountTypeKey = selectedAccountType.toLowerCase().replace(/\s+/g, '-');
-  const tabBtn = document.querySelector(`.account-tab-btn[data-type="${accountTypeKey}"]`);
-  if (tabBtn) {
-    tabBtn.click();
-  }
-  
-  // Ensure the detail view is visible
-  monthDetailView.classList.remove('hidden');
+  // Wait a moment then execute callback
+  setTimeout(() => {
+    if (typeof callback === 'function') {
+      callback();
+    }
+  }, 800);
 }
 
 function getCsrfToken() {
